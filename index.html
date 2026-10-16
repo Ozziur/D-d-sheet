@@ -1021,6 +1021,7 @@ function resList(){
   }
   if((l=lvOf('Mago'))>=1)out.push({k:'arc',n:'Recupero Arcano',m:1,r:'lungo'});
   if((l=lvOf('Monaco'))>=2)out.push({k:'ki',n:'Punti ki',m:l,r:'breve',pool:1});
+  if((l=lvOf('Monaco'))>=6&&subOf('Monaco')==='Via della Mano Aperta')out.push({k:'whole',n:'Integrità del Corpo',m:1,r:'lungo'});
   if((l=lvOf('Paladino'))>=1){
     out.push({k:'sense',n:'Percezione del Divino',m:1+abilMod('car')>0?1+abilMod('car'):1,r:'lungo'});
     out.push({k:'loh',n:'Imposizione delle Mani',m:5*l,r:'lungo',pool:1,u:'PF'});
@@ -1287,6 +1288,7 @@ function viewAzioni(){
       <button class="pill tonal" data-act="roll-atk" data-i="${i}" aria-label="Tira per colpire"><span class="pl">Colpire</span><span class="pv">${sgn(atkBonus(a))}</span></button>
       <button class="pill" data-act="roll-dmg" data-i="${i}" aria-label="Tira il danno"><span class="pl">Danno</span><span class="pv">${esc(a.dmg?dmgF(a):'—')}</span></button>
     </div>`).join('')}</div>`:`<div class="empty">Nessun attacco. Aggiungi la tua prima arma.</div>`}
+  ${monkCard()}
   ${deathCard()}
   <section class="card">
     <h2 class="h" style="margin-bottom:12px">Condizioni</h2>
@@ -1537,6 +1539,81 @@ function drawPick(){
     const open=PK.open===i&&e.d;
     return `<div class="pk"><button class="item" data-act="${e.d?'pk-open':'pick'}" data-i="${i}" aria-expanded="${!!open}"><span class="row-main"><b>${esc(e.n)}</b><small>${esc(e.s||'')}</small></span>${ic(e.d?(open?'chevUp':'chev'):'add')}</button>${open?`<div class="pk-det">${e.m?`<p class="sub">${esc(e.m)}</p>`:''}<p>${esc(e.d)}</p><button class="btn full" data-act="pick" data-i="${i}">Aggiungi</button></div>`:''}</div>`;
   }).join(''):'<div class="empty">Nessun risultato.</div>';
+}
+/* ───────── Monaco: Arti Marziali e ki (Manuale del Giocatore, cap. 3) ───────── */
+const monkL=()=>lvOf('Monaco');
+const maDie=l=>l>=17?10:l>=11?8:l>=5?6:4;
+const maOn=()=>!equipped('armatura').length&&!equipped('scudo').length;
+const MONKW=['Ascia','Bastone Ferrato','Falcetto','Giavellotto','Lancia','Martello Leggero','Mazza','Pugnale','Randello','Spada Corta'];
+const maAb=()=>maOn()&&abilMod('des')>abilMod('for')?'des':'for';
+const kiMax=()=>monkL()>=2?monkL():0;
+const kiLeft=()=>Math.max(0,kiMax()-Math.min((S.res||{}).ki||0,kiMax()));
+const kiDC=()=>8+pb()+abilMod('sag');
+function unarmed(){
+  const l=monkL(),on=maOn(),ab=on?maAb():'for',m=abilMod(ab);
+  return{name:'Colpo senz’armi',ab,hit:m+pb(),parts:[[AB[ab][1],m],['Competenza',pb()]],
+    dmg:(on?'1d'+maDie(l):'1')+(m?(m>0?'+':'-')+Math.abs(m):''),type:'contundente'+(l>=6?', magico':'')};
+}
+function monkWeapons(){
+  if(!maOn())return[];
+  const l=monkL(),md=maDie(l);
+  return S.attacks.map((a,i)=>({a,i})).filter(x=>MONKW.includes(x.a.name)).map(({a,i})=>{
+    const w=WEAP.find(x=>x[0]===a.name),wd=w?+(String(w[1]).match(/d(\d+)/)||[0,0])[1]:0;
+    const ab=maAb(),m=abilMod(ab),b=+a.bonus||0,die=Math.max(md,wd);
+    return{name:a.name,i,hit:m+(a.prof?pb():0)+b,parts:[[AB[ab][1],m],a.prof?['Competenza',pb()]:null,b?['Bonus magico',b]:null].filter(Boolean),
+      dmg:'1d'+die+((m+b)?((m+b)>0?'+':'-')+Math.abs(m+b):''),type:a.type||(w?w[2]:''),why:die>wd?'dado Arti Marziali d'+md:''};
+  });
+}
+function d20m(){const a=d(20),b=S.rollMode==='n'?null:d(20);return S.rollMode==='a'?Math.max(a,b):S.rollMode==='d'?Math.min(a,b):a;}
+function monkStrikes(n,label){
+  const u=unarmed(),out=[];let dm=0;
+  for(let k=0;k<n;k++){
+    const r=d20m(),c=r===20,f=rollFormula(u.dmg,c||crit);
+    out.push(`${k+1}°: ${r+u.hit} per colpire${c?' (critico)':r===1?' (fallimento)':''} → ${f?f.total:0} ${f&&f.total===1?'danno':'danni'}`);dm+=f?f.total:0;
+  }
+  showRoll({label,total:n+'×',detail:out.join(' · ')+` · colpire ${sgn(u.hit)}, danno ${u.dmg}`});
+}
+function spendKi(n,label,after){
+  if(kiLeft()<n){toast(`Punti ki insufficienti: te ne servono ${n}, ne hai ${kiLeft()}.`);return false;}
+  S.res=S.res||{};S.res.ki=(S.res.ki||0)+n;persist();render();
+  if(after)after();else toast(`${label}: spesi ${n} ki, ne restano ${kiLeft()}.`);
+  return true;
+}
+function monkCard(){
+  const l=monkL();if(!l)return'';
+  const on=maOn(),u=unarmed(),sub=subOf('Monaco'),ex=l>=5;
+  const pill=(act,k,lbl,v,tonal)=>`<button class="pill${tonal?' tonal':''}" data-act="${act}" data-k="${k}"><span class="pl">${lbl}</span><span class="pv">${esc(v)}</span></button>`;
+  const row=(name,small,right)=>`<div class="item"><div class="row-main"><b>${name}</b><small style="white-space:normal">${small}</small></div>${right}</div>`;
+  const kiRow=(k,name,cost,small,lbl)=>row(name,small,pill('mk-ki',k,lbl||'Usa',cost+' ki'));
+  const rows=[];
+  rows.push(row('Colpo senz’armi',`Azione di Attacco${ex?' · 2 attacchi (Attacco Extra)':''} · ${esc(u.type)}`,pill('mk-atk','u','Colpire',sgn(u.hit),1)+pill('mk-dmg','u','Danno',u.dmg)));
+  monkWeapons().forEach(w=>rows.push(row(esc(w.name),`Arma da monaco${w.why?' · '+w.why:''} · ${esc(w.type)}`,pill('mk-atk','w'+w.i,'Colpire',sgn(w.hit),1)+pill('mk-dmg','w'+w.i,'Danno',w.dmg))));
+  const bonus=[];
+  if(on)bonus.push(row('Colpo senz’armi bonus','Azione bonus, dopo l’azione di Attacco con colpo senz’armi o arma da monaco',pill('mk-bonus','u','Tira','1 colpo',1)));
+  if(l>=2){
+    bonus.push(kiRow('flurry','Raffica di Colpi',1,'Azione bonus, subito dopo l’azione di Attacco: 2 colpi senz’armi'+(sub==='Via della Mano Aperta'&&l>=3?'. Mano Aperta: a ogni colpo a segno il bersaglio cade prono (TS Des), viene spinto di 4,5 m (TS For) o non può fare reazioni fino al tuo prossimo turno':''),'Tira'));
+    bonus.push(kiRow('patient','Difesa Paziente',1,'Azione bonus: azione di Schivata'));
+    bonus.push(kiRow('step','Passo del Vento',1,'Azione bonus: Disimpegno o Scatto, salto raddoppiato per il turno'));
+  }
+  if(sub==='Via dell’Ombra'&&l>=6)bonus.push(row('Passo dell’Ombra','Azione bonus: da luce fioca o buio ti teletrasporti fino a 18 m in un altro punto in penombra o buio; vantaggio al primo attacco in mischia prima della fine del turno',''));
+  const other=[];
+  if(l>=5)other.push(kiRow('stun','Colpo Stordente',1,`Quando colpisci in mischia: TS Costituzione CD ${kiDC()} o stordito fino alla fine del tuo prossimo turno`));
+  if(sub==='Via dell’Ombra'&&l>=3)other.push(kiRow('shadow','Arti dell’Ombra',2,'Azione: lanci oscurità, passare senza tracce, scurovisione o silenzio (senza componenti materiali)'));
+  if(l>=7)other.push(row('Mente Lucida','Azione: termini un effetto che ti rende affascinato o spaventato',''));
+  if(sub==='Via della Mano Aperta'&&l>=6){const left=Math.max(0,1-((S.res||{}).whole||0));other.push(row('Integrità del Corpo',`Azione: recuperi ${3*l} PF. Una volta per riposo lungo${left?'':' (già usata)'}`,pill('mk-whole','w','Cura','+'+3*l+' PF',1)));}
+  if(l>=14)other.push(kiRow('adamant','Anima Adamantina',1,'Quando fallisci un tiro salvezza: ripeti il tiro e tieni il nuovo risultato'));
+  if(sub==='Via della Mano Aperta'&&l>=17)other.push(kiRow('quiver','Palmo Tremante',3,`Quando colpisci con un colpo senz’armi: vibrazioni per ${l} giorni. Con un’azione le fermi: TS Costituzione CD ${kiDC()}, se fallisce scende a 0 PF, altrimenti 10d10 necrotici`));
+  if(l>=18){other.push(kiRow('empty','Corpo Vuoto',4,'Azione: invisibile per 1 minuto, resistenza a tutti i danni tranne forza'));other.push(kiRow('astral','Corpo Vuoto: proiezione astrale',8,'Lanci proiezione astrale solo su te stesso, senza componenti materiali'));}
+  const react=[];
+  if(l>=3)react.push(row('Deviare Proiettili',`Reazione quando un’arma a distanza ti colpisce: riduci il danno di 1d10 ${sgn(abilMod('des'))} + ${l}. Se lo riduci a 0 puoi afferrarlo e rilanciarlo per 1 ki`,pill('mk-deflect','d','Riduci','1d10'+sgn(abilMod('des')+l).replace('−','-'),1)));
+  if(l>=4)react.push(row('Caduta Lenta',`Reazione quando cadi: riduci il danno da caduta di ${5*l}`,''));
+  const sec=(t,r)=>r.length?`<h3 class="group-h" style="margin:4px 0 0">${t}</h3><div class="list">${r.join('')}</div>`:'';
+  return `<section class="card sblock" aria-label="Arti Marziali del monaco">
+    <div class="row-h"><h2 class="h">Arti Marziali</h2><span class="sub">d${maDie(l)} · ${AB[maAb()][1]}</span></div>
+    ${l>=2?`<div class="row-h" style="min-height:44px"><div><b>Punti ki</b><br><span class="sub">CD ki ${kiDC()} · riposo breve</span></div><div class="qty"><button data-act="res-d" data-k="ki" data-d="1" aria-label="Spendi un punto ki">${ic('minus',20)}</button><b style="min-width:56px">${kiLeft()}/${kiMax()}</b><button data-act="res-d" data-k="ki" data-d="-1" aria-label="Recupera un punto ki">${ic('add',20)}</button></div></div>`:''}
+    ${on?'':`<p class="sub" style="margin:0">Indossi armatura o scudo: niente dado delle Arti Marziali, Destrezza al posto della Forza né colpo bonus.</p>`}
+    ${sec('Azione',rows)}${sec('Azione bonus',bonus)}${sec('Altri usi',other)}${sec('Reazioni',react)}
+  </section>`;
 }
 const ATKCATS=[['t','Tutte'],['m1','Una mano'],['m2','Due mani'],['dist','Distanza'],['inc','Incantesimi']];
 function spellAtks(){
@@ -1960,6 +2037,12 @@ document.addEventListener('click',e=>{
       if(!r){toast('Formula del danno non valida. Esempio: 1d8+3');break;}
       const why=dmgWhy(a);
       showRoll({label:`${a.name}: danno${a.type?' '+a.type:''}`,total:r.total,detail:r.detail+(why?' ('+why+')':''),tag:crit?'Critico':''});break;}
+    case 'mk-atk':{const t=D.k==='u'?unarmed():monkWeapons().find(w=>'w'+w.i===D.k);if(t)rollD20(t.name+': colpire',t.hit,t.parts);break;}
+    case 'mk-dmg':{const t=D.k==='u'?unarmed():monkWeapons().find(w=>'w'+w.i===D.k);if(!t)break;const r=rollFormula(t.dmg,crit);if(r)showRoll({label:`${t.name}: danno ${t.type}`,total:r.total,detail:r.detail,tag:crit?'Critico':''});break;}
+    case 'mk-bonus':monkStrikes(1,'Colpo senz’armi bonus');break;
+    case 'mk-ki':{const K={flurry:[1,'Raffica di Colpi',()=>monkStrikes(2,'Raffica di Colpi · 1 ki')],patient:[1,'Difesa Paziente'],step:[1,'Passo del Vento'],stun:[1,'Colpo Stordente',()=>showRoll({label:'Colpo Stordente · 1 ki',total:'CD '+kiDC(),detail:'Il bersaglio fa un TS Costituzione: se fallisce è stordito fino alla fine del tuo prossimo turno. Ki rimasti: '+kiLeft()})],shadow:[2,'Arti dell’Ombra'],adamant:[1,'Anima Adamantina'],quiver:[3,'Palmo Tremante'],empty:[4,'Corpo Vuoto'],astral:[8,'Proiezione astrale']}[D.k];if(K)spendKi(K[0],K[1],K[2]);break;}
+    case 'mk-deflect':{const l=monkL(),r=d(10),t=r+abilMod('des')+l;showRoll({label:'Deviare Proiettili',total:t,detail:`1d10: ${r} ${sgn(abilMod('des'))} (Destrezza) + ${l} (livello) = danno ridotto di ${t}`});break;}
+    case 'mk-whole':{S.res=S.res||{};if((S.res.whole||0)>=1){toast('Integrità del Corpo già usata: torna con un riposo lungo.');break;}const l=monkL(),b=S.hp;S.res.whole=1;S.hp=Math.min(S.hpMax,S.hp+3*l);persist();render();toast(`Integrità del Corpo: +${S.hp-b} PF (${S.hp}/${S.hpMax}).`);break;}
     case 'tog-crit':crit=!crit;render();break;
     case 'cond':{const c=D.c,k=S.conds.indexOf(c);if(k>=0)S.conds.splice(k,1);else S.conds.push(c);persist();render();break;}
     case 'exh':S.exh=clamp(S.exh+ +D.d,0,6);persist();render();break;
