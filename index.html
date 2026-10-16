@@ -1002,9 +1002,10 @@ function dmgWhy(a){
   const rest=c-(parts.length?m:0);
   if(rest)parts.push('bonus '+sgn(rest));
   if(rageB(a))parts.push('Ira '+sgn(rageB(a)));
+  if(paOK(a))parts.push('Attacco potente +10');
   return parts.join(' · ');
 }
-const dmgF=a=>(a.dmg||'')+(rageB(a)?'+'+rageB(a):'');
+const dmgF=a=>(a.dmg||'')+(rageB(a)?'+'+rageB(a):'')+(paOK(a)?'+10':'');
 const lvOf=n=>S.classes.filter(c=>c.n===n).reduce((t,c)=>t+c.l,0);
 const subOf=n=>(S.classes.find(c=>c.n===n)||{}).sub||'';
 /* Risorse di classe: numeri presi dai privilegi già in scheda (CF, CFD, SCF) */
@@ -1035,6 +1036,13 @@ function resList(){
   if((l=lvOf('Paladino'))>=15){const sb=subOf('Paladino');if(sb==='Giuramento degli Antichi')out.push({k:'undying',n:'Sentinella Imperitura',m:1,r:'lungo'});if(l>=20&&OATH_20[sb])out.push({k:'cap20',n:OATH_20[sb][0],m:1,r:'lungo'});}
   if((l=lvOf('Ladro'))>=17&&subOf('Ladro')==='Mistificatore Arcano')out.push({k:'spthief',n:'Ladro di Incantesimi',m:1,r:'lungo'});
   if(lvOf('Stregone')>=1&&subOf('Stregone')==='Magia Selvaggia')out.push({k:'tides',n:'Onde di Caos',m:1,r:'lungo'});
+  if(S.race==='Dragonide')out.push({k:'breath',n:'Arma a Soffio',m:1,r:'breve'});
+  if(S.race==='Mezzorco')out.push({k:'orcres',n:'Tenacia Implacabile',m:1,r:'lungo'});
+  if(S.race==='Tiefling'){if(S.level>=3)out.push({k:'hrebuke',n:'Intimorire Infernale',m:1,r:'lungo'});if(S.level>=5)out.push({k:'tdark',n:'Oscurità (tiefling)',m:1,r:'lungo'});}
+  if(S.race==='Drow'){if(S.level>=3)out.push({k:'faerie',n:'Luminescenza',m:1,r:'lungo'});if(S.level>=5)out.push({k:'ddark',n:'Oscurità (drow)',m:1,r:'lungo'});}
+  if((S.feats||[]).includes('Fortunato'))out.push({k:'lucky',n:'Punti fortuna',m:3,r:'lungo'});
+  if((S.feats||[]).includes('Iniziato all’Arte Magica'))out.push({k:'magini',n:'Iniziato alla Magia',m:1,r:'lungo'});
+  if((S.feats||[]).includes('Adepto Marziale'))out.push({k:'martad',n:'Dado di superiorità (Adepto Marziale)',m:1,r:'breve'});
   if((l=lvOf('Mago'))>=6){const sb=subOf('Mago');if(sb==='Scuola di Divinazione'&&l>=10)out.push({k:'third',n:'Terzo Occhio',m:1,r:'breve'});if(sb==='Scuola di Evocazione')out.push({k:'benign',n:'Trasposizione Benevola',m:1,r:'lungo'});if(sb==='Scuola di Illusione'&&l>=10)out.push({k:'illself',n:'Sosia Illusorio',m:1,r:'breve'});if(sb==='Scuola di Trasmutazione'&&l>=10)out.push({k:'shapech',n:'Mutaforma',m:1,r:'breve'});if(sb==='Scuola di Trasmutazione'&&l>=14)out.push({k:'mastert',n:'Maestro Trasmutatore',m:1,r:'lungo'});if(l>=20){out.push({k:'sig1',n:'Incantesimo Personale 1',m:1,r:'breve'});out.push({k:'sig2',n:'Incantesimo Personale 2',m:1,r:'breve'});}}
   if((l=lvOf('Warlock'))>=2){if(l>=14&&subOf('Warlock')==='Il Signore Fatato')out.push({k:'delir',n:'Delirio Oscuro',m:1,r:'breve'});chosen('suppl',SUPPL).forEach(k=>{const x=SUPPL.find(y=>y[0]===k);if(x[5]==='s'&&l>=x[2])out.push({k:'inv_'+k,n:x[1],m:1,r:'lungo'});});}
   if((l=lvOf('Warlock'))>=11){
@@ -1150,7 +1158,7 @@ function profPart(m){return m?[m>1?'Maestria (doppia competenza)':'Competenza',p
 function skillParts(i){const[n,k]=SKILLS[i],m=S.skills[n]||0;return[[AB[k][1],abilMod(k)],profPart(m)].filter(Boolean);}
 function saveParts(k){return[[AB[k][1],abilMod(k)],S.saves[k]?['Competenza',pb()]:null].filter(Boolean);}
 function initParts(){return[['Destrezza',abilMod('des')],S.initB?['Bonus extra',S.initB]:null,S.feats.includes('Allerta')?['Allerta',5]:null].filter(Boolean);}
-function atkParts(a){return[a.ab&&AB[a.ab]?[AB[a.ab][1],abilMod(a.ab)]:null,a.prof?['Competenza',pb()]:null,+a.bonus?['Bonus magico',+a.bonus]:null].filter(Boolean);}
+function atkParts(a){return[a.ab&&AB[a.ab]?[AB[a.ab][1],abilMod(a.ab)]:null,a.prof?['Competenza',pb()]:null,+a.bonus?['Bonus magico',+a.bonus]:null,paOK(a)?['Attacco potente',-5]:null].filter(Boolean);}
 function calcSheet(){
   const r=(t,v,d)=>`<div class="card" style="padding:12px 14px"><div class="row-h"><b>${t}</b><b style="font-size:20px;font-family:var(--serif)">${v}</b></div><p class="sub" style="margin:2px 0 0">${d}</p></div>`;
   const ai=acInfo(),pp=10+skillB(skillI('Percezione')),cc=castCls(),ab=S.spellAb;
@@ -1187,7 +1195,7 @@ function rollFormula(f,double){
 }
 
 /* ───────── Viste ───────── */
-const atkBonus=a=>(a.ab&&AB[a.ab]?abilMod(a.ab):0)+(a.prof?pb():0)+(+a.bonus||0);
+const atkBonus=a=>(a.ab&&AB[a.ab]?abilMod(a.ab):0)+(a.prof?pb():0)+(+a.bonus||0)+(paOK(a)?-5:0);
 const dotBtn=(act,attrs,p,label)=>`<button class="dot" data-act="${act}" ${attrs} data-p="${p}" aria-label="${esc(label)}"><i></i></button>`;
 
 function deathCard(){
@@ -1297,6 +1305,8 @@ function viewAzioni(){
     </div>`).join('')}</div>`:`<div class="empty">Nessun attacco. Aggiungi la tua prima arma.</div>`}
   ${monkCard()}
   ${classCards()}
+  ${raceCard()}
+  ${featCard()}
   ${deathCard()}
   <section class="card">
     <h2 class="h" style="margin-bottom:12px">Condizioni</h2>
@@ -1898,8 +1908,89 @@ function warCard(){
   if(l>=20)ot.push(xRow('Maestro dell’Occulto','1 minuto di supplica: recuperi tutti gli slot del patto. Una volta per riposo lungo',xPill('x-eldm','','Recupera',((resInfo('eldmaster')||{left:0}).left)+'/1',1)));
   return xCard('Azioni del warlock','Warlock',`CD ${dc} · ${sgn(pb()+cm)} per colpire`,'',[xSec('Azione',az),xSec('Azione bonus',bo),pt.length?`<h3 class="group-h" style="margin:4px 0 0">Dono del Patto</h3><div class="list">${pt.join('')}</div>`:'',sv.length?`<h3 class="group-h" style="margin:4px 0 0">Suppliche Occulte</h3><div class="list">${sv.join('')}</div>`:'',xSec('Altri usi',ot),xSec('Reazioni',re)]);
 }
+/* ───────── Razza e talenti (Manuale cap. 2 e 6) ───────── */
+const DRAGHI=[['Argento','Argento',0,'freddo','Cono di 4,5 m','cos'],['Bianco','Bianco',0,'freddo','Cono di 4,5 m','cos'],['Blu','Blu',0,'fulmine','Linea di 1,5 × 9 m','des'],['Bronzo','Bronzo',0,'fulmine','Linea di 1,5 × 9 m','des'],['Nero','Nero',0,'acido','Linea di 1,5 × 9 m','des'],['Oro','Oro',0,'fuoco','Cono di 4,5 m','des'],['Ottone','Ottone',0,'fuoco','Linea di 1,5 × 9 m','des'],['Rame','Rame',0,'acido','Linea di 1,5 × 9 m','des'],['Rosso','Rosso',0,'fuoco','Cono di 4,5 m','des'],['Verde','Verde',0,'veleno','Cono di 4,5 m','cos']];
+const hasFeat=n=>(S.feats||[]).includes(n);
+const raceIs=(...n)=>n.includes(S.race);
+/* Maestro d'Armi Possenti / Tiratore Scelto: −5 al tiro, +10 ai danni */
+function wOf(a){return a&&WEAP.find(w=>w[0]===a.name);}
+function paOK(a){const w=wOf(a);if(!w||!S.pwr)return false;if(hasFeat('Maestro d’Armi Possenti')&&w[4]!=='dist'&&/Pesante/.test(w[5]))return true;if(hasFeat('Tiratore Scelto')&&w[4]==='dist')return true;return false;}
+function raceCard(){
+  const r=S.race;if(!r)return'';
+  const az=[],bo=[],ot=[],re=[],ch=[];
+  if(r==='Dragonide'){
+    const c=chosen('drago',DRAGHI)[0],x=c&&DRAGHI.find(y=>y[0]===c),dc=8+pb()+abilMod('cos'),dd=(S.level>=16?5:S.level>=11?4:S.level>=6?3:2)+'d6';
+    ch.push(`<div class="item" style="flex-direction:column;align-items:stretch"><div class="row-main"><b style="white-space:normal">Discendenza Draconica${x?' · drago '+x[1].toLowerCase():''}</b><small style="white-space:normal">${x?`Danni da ${x[3]}, resistenza ai danni da ${x[3]}`:'Scegli il drago antenato'}</small></div>${chChips('drago',DRAGHI,1,S.level)}</div>`);
+    az.push(xRow('Arma a Soffio',x?`Azione: ${x[4]}, TS ${AB[x[5]][1]} CD ${dc}; ${dd} danni da ${x[3]}, metà se lo superano. Una volta per riposo breve o lungo`:'Scegli prima la discendenza',x?xUR('breath',dd,`Arma a Soffio · ${x[3]} · TS ${AB[x[5]][1]} CD ${dc}`,'Soffia'):''));
+  }
+  if(r==='Mezzorco'){
+    ot.push(xRow('Tenacia Implacabile','Quando scendi a 0 PF senza morire sul colpo, puoi restare a 1 PF. Una volta per riposo lungo',xPill('x-relentless','','Resta a 1',((resInfo('orcres')||{left:0}).left)+'/1',1)));
+    ot.push(xRow('Attacchi Selvaggi','Con un critico in mischia tiri un dado dell’arma in più',''));
+    ot.push(xRow('Minaccioso','Competenza in Intimidire',''));
+  }
+  if(raceIs('Halfling piedelesto','Halfling tozzo')){
+    ot.push(xRow('Fortunato','Quando ottieni 1 su un tiro per colpire, una prova o un TS, ripeti il tiro e tieni il nuovo',xPill('x-hluck','','Ritira','d20',1)));
+    ot.push(xRow('Coraggioso','Vantaggio ai TS contro spaventato',''));
+    ot.push(xRow('Agilità Halfling','Ti muovi attraverso lo spazio di creature più grandi di te',''));
+    if(r==='Halfling piedelesto')ot.push(xRow('Furtività Innata','Puoi nasconderti dietro una creatura più grande di te di almeno una taglia',''));
+    if(r==='Halfling tozzo')ot.push(xRow('Resilienza dei Tozzi','Vantaggio ai TS contro il veleno e resistenza ai danni da veleno',''));
+  }
+  if(r==='Tiefling'){
+    const dc=dcOf('car');
+    ot.push(xRow('Eredità Infernale','Conosci il trucchetto taumaturgia; Carisma per questi incantesimi',''));
+    if(S.level>=3)re.push(xRow('Intimorire Infernale',`Reazione quando una creatura entro 18 m ti danneggia: TS Destrezza CD ${dc}, 3d10 fuoco (metà se lo supera). Una volta per riposo lungo`,xUR('hrebuke','3d10','Intimorire Infernale · fuoco · TS Des CD '+dc,'Tira')));
+    if(S.level>=5)az.push(xRow('Oscurità','Lanci oscurità una volta per riposo lungo',xUse('tdark','Lancia')));
+    ot.push(xRow('Resistenza Infernale','Resistenza ai danni da fuoco',''));
+  }
+  if(r==='Drow'){
+    ot.push(xRow('Magia Drow','Conosci luci danzanti; Carisma per questi incantesimi',''));
+    if(S.level>=3)az.push(xRow('Luminescenza',`Lanci luminescenza una volta per riposo lungo (TS Destrezza CD ${dcOf('car')})`,xUse('faerie','Lancia')));
+    if(S.level>=5)az.push(xRow('Oscurità','Lanci oscurità una volta per riposo lungo',xUse('ddark','Lancia')));
+    ot.push(xRow('Sensibilità alla Luce del Sole','In piena luce solare hai svantaggio ai tiri per colpire e a Percezione basata sulla vista',''));
+  }
+  if(raceIs('Elfo alto','Elfo dei boschi','Drow','Mezzelfo'))ot.push(xRow('Retaggio Fatato','Vantaggio ai TS contro affascinato; la magia non può addormentarti',''));
+  if(raceIs('Elfo alto','Elfo dei boschi','Drow'))ot.push(xRow('Trance','4 ore di meditazione valgono come 8 ore di sonno',''));
+  if(r==='Elfo alto')ot.push(xRow('Trucchetto','Un trucchetto da mago a scelta, con Intelligenza',''));
+  if(r==='Elfo dei boschi')ot.push(xRow('Maschera della Selva','Puoi nasconderti se sei leggermente oscurato da fogliame, pioggia, neve, foschia',''));
+  if(raceIs('Nano delle colline','Nano delle montagne'))ot.push(xRow('Resilienza Nanica','Vantaggio ai TS contro il veleno e resistenza ai danni da veleno',''));
+  if(raceIs('Gnomo delle foreste','Gnomo delle rocce'))ot.push(xRow('Astuzia Gnomesca','Vantaggio a tutti i TS su Intelligenza, Saggezza e Carisma contro la magia',''));
+  if(r==='Gnomo delle foreste')ot.push(xRow('Illusionista Nato','Conosci illusione minore, con Intelligenza; parli con le piccole bestie',''));
+  if(r==='Gnomo delle rocce')az.push(xRow('Inventore','1 ora e 10 mo: un congegno Minuscolo (accendifuoco, carillon o giocattolo a molla), massimo tre attivi',''));
+  const n=az.length+bo.length+ot.length+re.length+ch.length;if(!n)return'';
+  return xCard('Tratti razziali',esc(r),'Tratti razziali','',[ch.length?`<div class="list">${ch.join('')}</div>`:'',xSec('Azione',az),xSec('Azione bonus',bo),xSec('Altri usi',ot),xSec('Reazioni',re)]);
+}
+function featCard(){
+  const F=S.feats||[];if(!F.length)return'';
+  const az=[],bo=[],ot=[],re=[];
+  if(hasFeat('Fortunato'))ot.push(xRow('Fortunato','Spendi un punto per tirare un d20 in più a un tuo attacco, prova o TS (e scegli), o a un attacco contro di te. 3 punti per riposo lungo',xUR('lucky','1d20','Fortunato · d20 extra','Tira')));
+  if(hasFeat('Maestro d’Armi Possenti')||hasFeat('Tiratore Scelto'))ot.push(xRow((hasFeat('Maestro d’Armi Possenti')?'Maestro d’Armi Possenti':'')+(hasFeat('Maestro d’Armi Possenti')&&hasFeat('Tiratore Scelto')?' · ':'')+(hasFeat('Tiratore Scelto')?'Tiratore Scelto':''),`−5 al tiro per colpire, +10 ai danni ${[hasFeat('Maestro d’Armi Possenti')?'con armi pesanti in mischia':'',hasFeat('Tiratore Scelto')?'con armi a distanza':''].filter(Boolean).join(' e ')}. ${S.pwr?'Attivo: già applicato agli attacchi qui sopra':'Attivalo per applicarlo agli attacchi'}`,`<button class="pill${S.pwr?' tonal':''}" data-act="x-pwr"><span class="pl">${S.pwr?'Attivo':'Spento'}</span><span class="pv">−5/+10</span></button>`));
+  if(hasFeat('Maestro d’Armi Possenti'))bo.push(xRow('Maestro d’Armi Possenti','Azione bonus: un attacco in mischia dopo un critico o dopo aver portato una creatura a 0 PF',''));
+  if(hasFeat('Tiratore Scelto'))ot.push(xRow('Tiratore Scelto','Nessuno svantaggio a gittata lunga; ignori metà e tre quarti di copertura',''));
+  if(hasFeat('Guaritore')){const hd=Math.max(...S.classes.map(c=>dieOf(c.n)));ot.push(xRow('Guaritore',`Azione con la borsa del guaritore: una creatura recupera 1d6 + 4 PF + il suo numero massimo di Dadi Vita (per te ${S.level}). Una volta per creatura per riposo. Stabilizzando, recupera 1 PF`,xRoll('1d6+4','Guaritore (aggiungi i Dadi Vita della creatura)','Cura')+xPill('x-healer','','Su di te','+'+S.level,1)));}
+  if(hasFeat('Condottiero Ispiratore'))ot.push(xRow('Condottiero Ispiratore',`10 minuti: fino a sei creature entro 9 m ottengono ${S.level+abilMod('car')} PF temporanei, una volta per riposo`,xPill('x-inspl','','Su di te','+'+(S.level+abilMod('car')),1)));
+  if(hasFeat('Carica'))bo.push(xRow('Carica','Dopo lo Scatto, azione bonus: un attacco in mischia (+5 ai danni se ti sei mosso di 3 m in linea retta) o una spinta di 3 m',xRoll('5','Carica (danni extra)','Danno',0)));
+  if(hasFeat('Maestro degli Scudi')){bo.push(xRow('Maestro degli Scudi','Con l’azione di Attacco, azione bonus: spingi con lo scudo una creatura entro 1,5 m',''));re.push(xRow('Maestro degli Scudi','Reazione: se superi un TS su Destrezza per dimezzare, non subisci danni. Aggiungi la CA dello scudo ai TS su Destrezza contro effetti solo su di te',''));}
+  if(hasFeat('Maestro delle Armi su Asta'))bo.push(xRow('Maestro delle Armi su Asta',`Con alabarda, bastone ferrato o falcione: azione bonus, attacco con l’altra estremità, 1d4${abilMod('for')?sgn(abilMod('for')):''} contundenti (stesso modificatore dell’attacco). Attacchi di opportunità quando entrano nella tua portata`,xRoll('1d4'+(abilMod('for')?sgn(abilMod('for')).replace('−','-'):''),'Asta, altra estremità','Danno',1)));
+  if(hasFeat('Esperto di Balestre'))bo.push(xRow('Esperto di Balestre','Ignori la ricarica; nessuno svantaggio a distanza con nemici a 1,5 m; con l’azione di Attacco a una mano, attacco bonus con la balestra a mano',''));
+  if(hasFeat('Combattente con Due Armi'))ot.push(xRow('Combattente con Due Armi','+1 CA con un’arma per mano; due armi da mischia anche non leggere',''));
+  if(hasFeat('Lottatore da Taverna'))ot.push(xRow('Lottatore da Taverna',`Colpo senz’armi 1d4${abilMod('for')?sgn(abilMod('for')):''}; dopo un colpo senz’armi o con arma improvvisata, azione bonus per afferrare`,xRoll('1d4'+(abilMod('for')?sgn(abilMod('for')).replace('−','-'):''),'Colpo senz’armi (Lottatore da Taverna)','Danno',1)));
+  if(hasFeat('Duellante Difensivo'))re.push(xRow('Duellante Difensivo',`Reazione con un’arma accurata: +${pb()} alla CA contro un attacco in mischia`,''));
+  if(hasFeat('Sentinella'))re.push(xRow('Sentinella','Il bersaglio colpito con un attacco di opportunità ha velocità 0; provoca anche se si disimpegna; reazione per attaccare chi attacca un altro entro 1,5 m da te',''));
+  if(hasFeat('Sterminatore di Maghi'))re.push(xRow('Sterminatore di Maghi','Reazione: attacchi in mischia chi lancia un incantesimo entro 1,5 m; chi colpisci ha svantaggio a mantenere la concentrazione; vantaggio ai TS contro incantesimi lanciati entro 1,5 m',''));
+  if(hasFeat('Incantatore da Guerra'))re.push(xRow('Incantatore da Guerra','Vantaggio ai TS per la concentrazione; componenti somatiche con le mani occupate; un incantesimo da 1 azione al posto dell’attacco di opportunità',''));
+  if(hasFeat('Cecchino Magico'))ot.push(xRow('Cecchino Magico','Gittata raddoppiata per gli incantesimi con tiro per colpire; ignori metà e tre quarti di copertura',''));
+  if(hasFeat('Iniziato all’Arte Magica'))az.push(xRow('Iniziato alla Magia','Lanci il tuo incantesimo di 1° livello una volta per riposo lungo',xUse('magini','Lancia')));
+  if(hasFeat('Lottatore'))az.push(xRow('Lottatore','Vantaggio ad attaccare chi stai afferrando; con l’azione tenti di immobilizzarlo (nuova prova di lotta)',''));
+  if(hasFeat('Mobile'))ot.push(xRow('Mobile','Velocità +3 m; con lo Scatto ignori il terreno difficile; chi attacchi in mischia non ti fa attacchi di opportunità',''));
+  if(hasFeat('Allerta'))ot.push(xRow('Allerta','+5 all’iniziativa (già contato), non puoi essere sorpreso',''));
+  if(hasFeat('Osservatore'))ot.push(xRow('Osservatore','+5 a Percezione e Indagare passive; leggi le labbra',''));
+  if(hasFeat('Adepto Marziale'))ot.push(xRow('Adepto Marziale','Un dado di superiorità d6 per due manovre, una volta per riposo breve',xUR('martad','1d6','Adepto Marziale · dado di superiorità','Usa')));
+  const n=az.length+bo.length+ot.length+re.length;if(!n)return'';
+  return xCard('Talenti','Talenti',F.length+' talent'+(F.length===1?'o':'i'),'',[xSec('Azione',az),xSec('Azione bonus',bo),xSec('Altri usi',ot),xSec('Reazioni',re)]);
+}
 const classCards=()=>[barbCard(),bardCard(),clerCard(),druCard(),fightCard(),rogCard(),palCard(),rangCard(),sorcCard(),wizCard(),warCard()].join('');
 const CHLIST={man:[MANOVRE,l=>{const g=lvOf('Guerriero');return g>=15?9:g>=10?7:g>=7?5:3;},'Guerriero','Manovre','Ne conosci 3 al 3° livello e 2 in più al 7°, 10° e 15°.'],meta:[METAMAGIA,()=>{const s=lvOf('Stregone');return s>=17?4:s>=10?3:2;},'Stregone','Metamagia','Ne conosci 2 al 3° livello, una in più al 10° e al 17°.'],
+ drago:[DRAGHI,()=>1,'Dragonide'],
  pact:[PATTI,()=>1,'Warlock'],suppl:[SUPPL,()=>supplN(lvOf('Warlock')),'Warlock','Suppliche Occulte','Due al 2° livello, poi 3 al 5°, 4 al 7°, 5 al 9°, 6 al 12°, 7 al 15°, 8 al 18°. Quelle legate a un dono del patto richiedono quel dono.'],
  tot3:[TOTEM,()=>1,'Barbaro'],tot6:[TOTEM,()=>1,'Barbaro'],tot14:[TOTEM,()=>1,'Barbaro'],hunt3:[HUNT.hunt3,()=>1,'Ranger'],hunt7:[HUNT.hunt7,()=>1,'Ranger'],hunt11:[HUNT.hunt11,()=>1,'Ranger'],hunt15:[HUNT.hunt15,()=>1,'Ranger']};
 /* ───────── Monaco: Arti Marziali e ki (Manuale del Giocatore, cap. 3) ───────── */
@@ -2487,6 +2578,11 @@ document.addEventListener('click',e=>{
     case 'x-inv':{const x=SUPPL.find(y=>y[0]===D.k);if(!x)break;if(!S.pactSl||S.pactSl.n-S.pactSl.u<=0){toast('Serve uno slot del patto libero.');break;}useRes('inv_'+D.k,x[1],()=>{S.pactSl.u++;persist();render();toast(`${x[1]}: speso uno slot del patto (${S.pactSl.l}°).`);});break;}
     case 'x-dob':{const n=Math.max(1,abilMod('car')+lvOf('Warlock'));if(n>(S.tmp||0)){S.tmp=n;persist();render();toast(`Benedizione dell’Oscuro: ${n} PF temporanei.`);}else toast(`Hai già ${S.tmp} PF temporanei (non si sommano).`);break;}
     case 'x-eldm':useRes('eldmaster','Maestro dell’Occulto',()=>{if(S.pactSl)S.pactSl.u=0;persist();render();toast('Maestro dell’Occulto: slot del patto recuperati.');});break;
+    case 'x-pwr':S.pwr=!S.pwr;persist();render();toast(S.pwr?'Attacco potente attivo: −5 al tiro, +10 ai danni sulle armi adatte.':'Attacco potente disattivato.');break;
+    case 'x-relentless':{if(S.hp>0){toast('Si usa quando scendi a 0 PF.');break;}useRes('orcres','Tenacia Implacabile',()=>{S.hp=1;S.death={s:0,f:0};persist();render();toast('Tenacia Implacabile: resti a 1 PF.');});break;}
+    case 'x-hluck':{const r=d(20);showRoll({label:'Fortunato (halfling)',total:r,detail:'Nuovo d20 al posto dell’1: '+r,tag:r===20?'Critico!':'',bad:r===1});break;}
+    case 'x-healer':heal(S.level);break;
+    case 'x-inspl':{const n=S.level+abilMod('car');if(n>(S.tmp||0)){S.tmp=n;persist();render();toast(`Condottiero Ispiratore: ${n} PF temporanei.`);}else toast(`Hai già ${S.tmp} PF temporanei.`);break;}
     case 'mk-disc-pick':discPanel();break;
     case 'mk-disc-t':{const l=monkL(),x=DISC.find(d=>d[0]===D.k);if(!x)break;S.disc=discKnown();const j=S.disc.indexOf(D.k);if(j>=0)S.disc.splice(j,1);else if(S.disc.length<discSlots(l)&&l>=x[2])S.disc.push(D.k);persist();render();const b=$('#sheet-body',root),sc=b?b.scrollTop:0;closeSheetInstant();discPanel();root.classList.add('open');const nb=$('#sheet-body',root);if(nb)nb.scrollTop=sc;break;}
     case 'mk-disc':discUse(D.k);break;
