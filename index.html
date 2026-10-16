@@ -1026,10 +1026,15 @@ function resList(){
     out.push({k:'sense',n:'Percezione del Divino',m:1+abilMod('car')>0?1+abilMod('car'):1,r:'lungo'});
     out.push({k:'loh',n:'Imposizione delle Mani',m:5*l,r:'lungo',pool:1,u:'PF'});
     if(l>=3)out.push({k:'cdp',n:'Incanalare Divinità (paladino)',m:1,r:'breve'});
-    if(l>=14)out.push({k:'cleanse',n:'Tocco Purificante',m:car,r:'lungo'});
+    if(l>=14)out.push({k:'cleanse',n:'Tocco Purificatore',m:car,r:'lungo'});
   }
   if((l=lvOf('Stregone'))>=2)out.push({k:'sorc',n:'Punti stregoneria',m:l,r:'lungo',pool:1});
   if((l=lvOf('Ladro'))>=20)out.push({k:'luck',n:'Colpo di Fortuna',m:1,r:'breve'});
+  if((l=lvOf('Chierico'))>=1){const sb=subOf('Chierico'),sg=Math.max(1,abilMod('sag'));if(sb==='Dominio della Guerra')out.push({k:'warpr',n:'Sacerdote di Guerra',m:sg,r:'lungo'});if(sb==='Dominio della Luce')out.push({k:'flare',n:'Lampo di Interdizione',m:sg,r:'lungo'});if(sb==='Dominio della Tempesta')out.push({k:'wrath',n:'Collera della Tempesta',m:sg,r:'lungo'});if(l>=10)out.push({k:'divint',n:'Intervento Divino',m:1,r:'lungo'});}
+  if((l=lvOf('Druido'))>=2&&subOf('Druido')==='Circolo della Terra')out.push({k:'natrec',n:'Recupero Naturale',m:1,r:'lungo'});
+  if((l=lvOf('Paladino'))>=15){const sb=subOf('Paladino');if(sb==='Giuramento degli Antichi')out.push({k:'undying',n:'Sentinella Imperitura',m:1,r:'lungo'});if(l>=20&&OATH_20[sb])out.push({k:'cap20',n:OATH_20[sb][0],m:1,r:'lungo'});}
+  if((l=lvOf('Ladro'))>=17&&subOf('Ladro')==='Mistificatore Arcano')out.push({k:'spthief',n:'Ladro di Incantesimi',m:1,r:'lungo'});
+  if(lvOf('Stregone')>=1&&subOf('Stregone')==='Magia Selvaggia')out.push({k:'tides',n:'Onde di Caos',m:1,r:'lungo'});
   if((l=lvOf('Warlock'))>=11){
     [[11,6],[13,7],[15,8],[17,9]].forEach(([lv,sl])=>{if(l>=lv)out.push({k:'arcanum'+sl,n:'Arcanum Mistico ('+sl+'° livello)',m:1,r:'lungo'});});
     if(l>=20)out.push({k:'eldmaster',n:'Maestro dell’Occulto',m:1,r:'lungo'});
@@ -1050,7 +1055,7 @@ function resCard(){
     return `<div class="slot-row" style="flex-wrap:wrap"><div style="flex:1 1 140px;min-width:0"><b>${esc(x.n)}</b><br>${rl}</div><div class="pips" style="flex:0 1 auto">${Array.from({length:x.m},(_,j)=>`<button class="pip${j<av?' on':''}" data-act="res" data-k="${x.k}" data-j="${j}" aria-label="${esc(x.n)} ${j<av?'disponibile':'usato'}" aria-pressed="${j<av}"></button>`).join('')}</div><span class="cnt">${av}/${x.m}</span></div>`;
   }).join('')}</section>`;
 }
-function resReset(kind){S.res=S.res||{};if(kind==='long'){S.res={};return;}resList().forEach(x=>{if(x.r==='breve')delete S.res[x.k];});}
+function resReset(kind){S.res=S.res||{};S.relent=0;if(kind==='long'){S.res={};return;}resList().forEach(x=>{if(x.r==='breve')delete S.res[x.k];});}
 function rageCard(){
   const l=barbL();if(!l)return'';
   const mx=rageMax(l),u=S.rageU||0,left=mx===Infinity?Infinity:Math.max(0,mx-u),on=!!S.raging;
@@ -1289,6 +1294,7 @@ function viewAzioni(){
       <button class="pill" data-act="roll-dmg" data-i="${i}" aria-label="Tira il danno"><span class="pl">Danno</span><span class="pv">${esc(a.dmg?dmgF(a):'—')}</span></button>
     </div>`).join('')}</div>`:`<div class="empty">Nessun attacco. Aggiungi la tua prima arma.</div>`}
   ${monkCard()}
+  ${classCards()}
   ${deathCard()}
   <section class="card">
     <h2 class="h" style="margin-bottom:12px">Condizioni</h2>
@@ -1540,6 +1546,264 @@ function drawPick(){
     return `<div class="pk"><button class="item" data-act="${e.d?'pk-open':'pick'}" data-i="${i}" aria-expanded="${!!open}"><span class="row-main"><b>${esc(e.n)}</b><small>${esc(e.s||'')}</small></span>${ic(e.d?(open?'chevUp':'chev'):'add')}</button>${open?`<div class="pk-det">${e.m?`<p class="sub">${esc(e.m)}</p>`:''}<p>${esc(e.d)}</p><button class="btn full" data-act="pick" data-i="${i}">Aggiungi</button></div>`:''}</div>`;
   }).join(''):'<div class="empty">Nessun risultato.</div>';
 }
+/* ───────── Azioni di classe (Manuale del Giocatore, cap. 3) ───────── */
+const xPill=(act,attrs,lbl,v,tonal)=>`<button class="pill${tonal?' tonal':''}" data-act="${act}" ${attrs}><span class="pl">${lbl}</span><span class="pv">${esc(v)}</span></button>`;
+const xRow=(name,small,right)=>`<div class="item"><div class="row-main"><b style="white-space:normal">${name}</b><small style="white-space:normal">${small}</small></div>${right||''}</div>`;
+const xSec=(t,r)=>r.length?`<h3 class="group-h" style="margin:4px 0 0">${t}</h3><div class="list">${r.join('')}</div>`:'';
+const xCard=(label,title,sub,head,secs)=>`<section class="card sblock" aria-label="${esc(label)}"><div class="row-h"><h2 class="h">${title}</h2><span class="sub">${sub}</span></div>${head||''}${secs.join('')}</section>`;
+const dcOf=ab=>8+pb()+abilMod(ab);
+const cdLeft=k=>{const r=resInfo(k);return r?r.left+'/'+r.x.m:'—';};
+const atkN=(l,lv)=>lv.filter(x=>l>=x).length+1;
+function resInfo(k){const x=resList().find(r=>r.k===k);if(!x)return null;const u=Math.min((S.res||{})[k]||0,x.m);return{x,left:x.m-u};}
+const xUse=(k,lbl)=>{const r=resInfo(k);return r?xPill('x-res',`data-k="${k}"`,lbl||'Usa',r.left+'/'+r.x.m,r.left>0):'';};
+const xUR=(k,f,label,lbl)=>{const r=resInfo(k);return xPill('x-resroll',`data-k="${k}" data-f="${esc(f)}" data-l="${esc(label)}"`,lbl||'Usa',f+(r?' · '+r.left+'/'+r.x.m:''),!!(r&&r.left>0));};
+const xRoll=(f,label,lbl,crit,tonal)=>xPill('x-roll',`data-f="${esc(f)}" data-l="${esc(label)}"${crit?' data-c="1"':''}`,lbl||'Tira',f,tonal!==false);
+function useRes(k,label,after){
+  const r=resInfo(k);if(!r){toast('Privilegio non disponibile.');return false;}
+  if(r.left<=0){toast(`${label||r.x.n}: nessun utilizzo rimasto (riposo ${r.x.r}).`);return false;}
+  S.res=S.res||{};S.res[k]=(S.res[k]||0)+1;persist();render();
+  if(after)after();else toast(`${label||r.x.n}: usato, ne restano ${r.left-1}.`);
+  return true;
+}
+function spendPts(k,n,label,after){
+  const r=resInfo(k);if(!r)return false;
+  if(r.left<n){toast(`${label}: servono ${n} punti, ne hai ${r.left}.`);return false;}
+  S.res=S.res||{};S.res[k]=(S.res[k]||0)+n;persist();render();
+  if(after)after();else toast(`${label}: ${n===1?'speso 1 punto':'spesi '+n+' punti'}, ne restano ${r.left-n}.`);
+  return true;
+}
+function xRollF(f,label,useCrit,extra){
+  const r=rollFormula(f,useCrit&&crit);if(!r){toast('Formula non valida.');return null;}
+  showRoll({label,total:r.total,detail:r.detail+(extra?' · '+extra:''),tag:useCrit&&crit?'Critico':''});return r.total;
+}
+/* scelte (manovre, metamagia, prede del cacciatore, spiriti totemici) */
+const chosen=(g,list)=>((S.ch||{})[g]||[]).filter(id=>list.some(x=>x[0]===id));
+function chChips(g,list,max,lvl){
+  const sel=chosen(g,list),full=sel.length>=max;
+  return `<div class="chips">${list.map(x=>{const on=sel.includes(x[0]),ok=!x[2]||lvl>=x[2];return `<button class="chip" data-act="x-ch-t" data-g="${g}" data-k="${x[0]}" data-m="${max}" aria-pressed="${on}"${!on&&(!ok||(full&&max>1))?' disabled style="opacity:.45"':''}>${on?ic('check',16):''}${esc(x[1])}${typeof x[4]==='number'||x[4]==='liv.'?' · '+x[4]+' pt':''}${x[2]>3?' · '+x[2]+'°':''}</button>`;}).join('')}</div>`;
+}
+let XPANEL=null;
+function chPanel(g,title,list,max,lvl,note){XPANEL=()=>chPanel(g,title,list,max,lvl,note);openSheet({title,body:`<p class="sub">${note} Scelte: ${chosen(g,list).length}/${max}.</p>${chChips(g,list,max,lvl)}`});}
+/* scelta di uno slot incantesimo */
+let SLOTCB=null;
+function slotPick(title,desc,label,cb){
+  const opts=[];
+  S.slots.forEach((s,i)=>{if(s&&s.m-s.u>0)opts.push([String(i),i+1,s.m-s.u]);});
+  if(S.pactSl&&S.pactSl.n-S.pactSl.u>0)opts.push(['p',S.pactSl.l,S.pactSl.n-S.pactSl.u,1]);
+  if(!opts.length){toast('Nessuno slot incantesimo disponibile.');return;}
+  SLOTCB=cb;
+  openSheet({title,body:`<p>${desc}</p><div class="fields">${opts.map(o=>`<button class="btn outline full" data-act="x-slot-go" data-l="${o[0]}">${o[3]?'Slot del patto ':'Slot di '}${o[1]}° livello · ${label(o[1])} · ${o[2]} disp.</button>`).join('')}</div>`});
+}
+function slotSpend(id){if(id==='p'){S.pactSl.u++;return S.pactSl.l;}const s=S.slots[+id];s.u++;return +id+1;}
+
+/* ── Barbaro ── */
+const TOTEM=[['Aquila','Aquila'],['Lupo','Lupo'],['Orso','Orso']];
+const TOT3={Aquila:'In ira e senza armatura pesante: svantaggio agli attacchi di opportunità contro di te, Scatto come azione bonus.',Lupo:'In ira: gli amici hanno vantaggio in mischia contro i nemici entro 1,5 m da te.',Orso:'In ira: resistenza a tutti i danni tranne psichici.'};
+const TOT6={Aquila:'Vedi fino a 1,5 km nei dettagli; la luce fioca non dà svantaggio a Percezione.',Lupo:'Segui tracce a passo veloce e ti muovi furtivo a passo normale.',Orso:'Carico e sollevamento raddoppiati; vantaggio alle prove di Forza per spingere, trascinare, sollevare o spezzare.'};
+const TOT14={Aquila:'In ira: velocità di volare pari alla tua velocità (solo brevi tratti).',Lupo:'In ira: azione bonus per buttare prona una creatura Grande o più piccola che colpisci in mischia.',Orso:'In ira: i nemici entro 1,5 m hanno svantaggio ad attaccare altri che non siano te.'};
+function barbCard(){
+  const l=barbL();if(!l)return'';const sub=subOf('Barbaro');
+  const mx=rageMax(l),u=S.rageU||0,left=mx===Infinity?'∞':Math.max(0,mx-u),on=!!S.raging;
+  const head=`<div class="row-h" style="min-height:44px"><div><b>${on?'In ira':'Ira'}</b><br><span class="sub">${left}${mx===Infinity?'':'/'+mx} usi · +${rageDmg(l)} danni in mischia con Forza</span></div><button class="btn ${on?'tonal':''} sm" data-act="rage-tog">${on?'Termina':'Entra in ira'}</button></div>`;
+  const az=[],bo=[],ot=[],re=[];
+  bo.push(xRow('Entrare in ira','Azione bonus: vantaggio a prove e TS di Forza, danni extra con Forza, resistenza a contundenti, perforanti e taglienti. Dura 1 minuto.',''));
+  if(l>=5)az.push(xRow('Attacco Extra','2 attacchi con l’azione di Attacco',''));
+  if(l>=2)ot.push(xRow('Attacco Irruento','Al primo attacco del turno: vantaggio ai tiri in mischia con Forza, ma chi ti attacca ha vantaggio fino al tuo prossimo turno',xPill('x-adv','','Attiva','vantaggio',1)));
+  if(l>=9)ot.push(xRow('Critico Brutale',`Con un critico in mischia tiri ${l>=17?3:l>=13?2:1} dad${l>=13?'i':'o'} dell’arma in più`,''));
+  if(l>=11){const dc=10+5*(S.relent||0);ot.push(xRow('Ira Implacabile',`In ira, se scendi a 0 PF: TS Costituzione CD ${dc} per restare a 1 PF. +5 alla CD a ogni uso, torna a 10 dopo un riposo`,xPill('x-relent','','TS Cos','CD '+dc,1)));}
+  if(sub==='Cammino del Berserker'){
+    if(l>=3)bo.push(xRow('Frenesia','In ira puoi entrare in frenesia: un attacco con arma da mischia come azione bonus in ogni turno. Alla fine dell’ira subisci un livello di indebolimento',''));
+    if(l>=6)ot.push(xRow('Ira Incontenibile','In ira non puoi essere affascinato o spaventato',''));
+    if(l>=10)az.push(xRow('Presenza Intimidatoria',`Azione: una creatura entro 9 m fa un TS Saggezza CD ${dcOf('car')} o è spaventata fino alla fine del tuo prossimo turno`,''));
+    if(l>=14)re.push(xRow('Ritorsione','Reazione: quando subisci danni da una creatura entro 1,5 m, la attacchi con un’arma da mischia',''));
+  }
+  const tot=[];
+  if(sub==='Cammino del Combattente Totemico'){
+    [[3,'tot3','Spirito Totemico',TOT3],[6,'tot6','Aspetto della Bestia',TOT6],[14,'tot14','Sintonia Totemica',TOT14]].forEach(([lv,g,n,T])=>{if(l<lv)return;const c=chosen(g,TOTEM)[0];tot.push(`<div class="item" style="flex-direction:column;align-items:stretch"><div class="row-main"><b style="white-space:normal">${n} (${lv}°)</b><small style="white-space:normal">${c?esc(T[c]):'Scegli l’animale'}</small></div>${chChips(g,TOTEM,1,l)}</div>`);});
+    if(l>=10)ot.push(xRow('Viandante Spirituale','Lanci comunione con la natura come rituale',''));
+  }
+  return xCard('Azioni del barbaro','Barbaro',`Livello ${l}`,head,[xSec('Azione',az),xSec('Azione bonus',bo),xSec('Altri usi',ot),xSec('Spiriti totemici',tot),xSec('Reazioni',re)]);
+}
+
+/* ── Bardo ── */
+const bardDie=l=>l>=15?12:l>=10?10:l>=5?8:6;
+function bardCard(){
+  const l=lvOf('Bardo');if(!l)return'';const sub=subOf('Bardo'),dd='1d'+bardDie(l);
+  const bo=[],ot=[],re=[],az=[];
+  bo.push(xRow('Ispirazione Bardica',`Azione bonus: una creatura entro 18 m riceve un ${dd}, da aggiungere entro 10 minuti a una prova, un attacco o un TS. Usi pari al Carisma, si recuperano con riposo ${l>=5?'breve o lungo':'lungo'}`,xUse('bard','Concedi')+xRoll(dd,'Dado di Ispirazione Bardica','Dado')));
+  if(l>=2)ot.push(xRow('Factotum',`+${Math.floor(pb()/2)} alle prove di caratteristica in cui non sei competente`,''));
+  if(l>=2){const sd='1d'+(l>=17?12:l>=13?10:l>=9?8:6);ot.push(xRow('Canto di Riposo',`Durante un riposo breve, chi spende Dadi Vita recupera ${sd} PF extra`,xRoll(sd,'Canto di Riposo','PF extra')));}
+  if(l>=6)az.push(xRow('Controfascino','Azione: fino alla fine del tuo prossimo turno tu e gli amici entro 9 m avete vantaggio ai TS contro affascinato e spaventato',''));
+  if(sub==='Collegio della Sapienza'){
+    if(l>=3)re.push(xRow('Parole Taglienti',`Reazione: spendi un’Ispirazione e sottrai ${dd} all’attacco, alla prova o al danno di una creatura entro 18 m`,xUR('bard',dd,'Parole Taglienti')));
+    if(l>=14)ot.push(xRow('Abilità Impareggiabile',`Spendi un’Ispirazione e aggiungi ${dd} a una tua prova di caratteristica`,xUR('bard',dd,'Abilità Impareggiabile')));
+  }
+  if(sub==='Collegio del Valore'){
+    if(l>=3)re.push(xRow('Ispirazione in Combattimento','Chi ha un tuo dado può aggiungerlo ai danni di un’arma, o alla CA con la reazione contro un attacco',''));
+    if(l>=6)az.push(xRow('Attacco Extra','2 attacchi con l’azione di Attacco',''));
+    if(l>=14)bo.push(xRow('Magia da Battaglia','Quando lanci un incantesimo da bardo con l’azione, un attacco con un’arma come azione bonus',''));
+  }
+  if(l>=20)ot.push(xRow('Ispirazione Superiore','Se tiri l’iniziativa senza Ispirazioni rimaste, ne recuperi una',''));
+  return xCard('Azioni del bardo','Bardo',`${dd} · CD ${dcOf('car')}`,'',[xSec('Azione',az),xSec('Azione bonus',bo),xSec('Altri usi',ot),xSec('Reazioni',re)]);
+}
+
+/* ── Chierico ── */
+const DOM_CD={
+ 'Dominio della Conoscenza':[[2,'Conoscenze Secolari','Azione: competenza in un’abilità o strumento a scelta per 10 minuti'],[6,'Lettura del Pensiero','Azione: una creatura entro 18 m fa un TS Saggezza; se fallisce leggi i suoi pensieri per 1 minuto e puoi lanciarle suggestione senza slot','sag']],
+ 'Dominio della Guerra':[[2,'Colpo Guidato','+10 a un tuo tiro per colpire, dopo aver visto il dado'],[6,'Benedizione del Dio della Guerra','Reazione: +10 al tiro per colpire di una creatura entro 9 m']],
+ 'Dominio dell’Inganno':[[2,'Invocare Duplicato','Azione: un tuo duplicato illusorio per 1 minuto (concentrazione); lanci da lì e hai vantaggio contro chi gli è vicino'],[6,'Manto di Ombre','Azione: invisibile fino alla fine del tuo prossimo turno']],
+ 'Dominio della Luce':[[2,'Fulgore dell’Alba','Azione: dissolvi l’oscurità magica entro 9 m; le creature ostili fanno un TS Costituzione, se falliscono subiscono i danni radiosi, altrimenti metà','cos','2d10+L']],
+ 'Dominio della Natura':[[2,'Charme su Animali e Vegetali','Azione: bestie e vegetali entro 9 m fanno un TS Saggezza o sono affascinati per 1 minuto']],
+ 'Dominio della Tempesta':[[2,'Collera Distruttiva','Quando tiri danni da fulmine o tuono, infliggi il massimo invece di tirare']],
+ 'Dominio della Vita':[[2,'Preservare Vita','Azione: dividi PF pari a 5 × livello (L) tra creature entro 9 m, fino a metà del loro massimo']]};
+const DOM_SMITE={'Dominio della Guerra':'dello stesso tipo dell’arma','Dominio dell’Inganno':'da veleno','Dominio della Natura':'da freddo, fulmine o fuoco','Dominio della Tempesta':'da tuono','Dominio della Vita':'radiosi'};
+function clerCard(){
+  const l=lvOf('Chierico');if(!l)return'';const sub=subOf('Chierico'),dc=dcOf('sag');
+  const az=[],bo=[],ot=[],re=[],cd=[];
+  if(l>=2){
+    const gs=l>=17?'4':l>=14?'3':l>=11?'2':l>=8?'1':l>=5?'1/2':'';
+    cd.push(xRow('Scacciare Non Morti',`Azione: i non morti entro 9 m fanno un TS Saggezza CD ${dc}; se falliscono sono scacciati per 1 minuto${gs?`. Distruggere Non Morti: quelli di GS ${gs} o inferiore sono distrutti`:''}`,xPill('x-cd','data-c="cdc" data-o="Scacciare Non Morti"','Usa',cdLeft('cdc'),1)));
+    (DOM_CD[sub]||[]).forEach(([lv,n,t,ab,f])=>{if(l<lv)return;const ff=f?f.replace('L',l):'';cd.push(xRow(n,t.replace('(L)','('+(5*l)+' PF)')+(ab?` · CD ${dc}`:''),ff?xPill('x-cd',`data-c="cdc" data-o="${esc(n)}" data-f="${ff}"`,'Tira',ff,1):xPill('x-cd',`data-c="cdc" data-o="${esc(n)}"`,'Usa',cdLeft('cdc'),1)));});
+  }
+  if(sub==='Dominio della Guerra'){bo.push(xRow('Sacerdote di Guerra','Con l’azione di Attacco, un attacco con un’arma come azione bonus. Usi pari alla Saggezza',xUse('warpr')));if(l>=17)ot.push(xRow('Avatar della Battaglia','Resistenza ai danni contundenti, perforanti e taglienti delle armi non magiche',''));}
+  if(sub==='Dominio dell’Inganno'){az.push(xRow('Benedizione dell’Ingannatore','Azione: una creatura consenziente ha vantaggio a Furtività per 1 ora',''));if(l>=17)ot.push(xRow('Duplicato Migliorato','Invocare Duplicato crea fino a quattro duplicati',''));}
+  if(sub==='Dominio della Luce'){re.push(xRow('Lampo di Interdizione',`Reazione: svantaggio a un attacco contro di te${l>=6?' o contro un’altra creatura':''} da una creatura entro 9 m. Usi pari alla Saggezza`,xUse('flare')));if(l>=17)az.push(xRow('Corona di Luce','Azione: aura di luce di 18 m per 1 minuto; i nemici hanno svantaggio ai TS contro i tuoi incantesimi di fuoco o radiosi',''));}
+  if(sub==='Dominio della Natura'){if(l>=6)re.push(xRow('Mitigare Elementi','Reazione: resistenza a un danno da acido, freddo, fulmine, fuoco o tuono per te o una creatura entro 9 m',''));if(l>=17)bo.push(xRow('Maestro della Natura','Azione bonus: comandi le creature affascinate con Charme su Animali e Vegetali',''));}
+  if(sub==='Dominio della Tempesta'){re.push(xRow('Collera della Tempesta',`Reazione quando una creatura entro 1,5 m ti colpisce: TS Destrezza CD ${dc}, 2d8 fulmine o tuono (metà se lo supera). Usi pari alla Saggezza`,xUR('wrath','2d8','Collera della Tempesta','Danno')));if(l>=6)ot.push(xRow('Colpo del Tuono e del Fulmine','Quando infliggi danni da fulmine a una creatura Grande o più piccola, puoi spingerla di 3 m',''));if(l>=17)ot.push(xRow('Nato dalla Tempesta','Velocità di volare pari alla tua velocità all’aperto',''));}
+  if(sub==='Dominio della Vita'){ot.push(xRow('Discepolo della Vita','I tuoi incantesimi di cura curano 2 + livello dell’incantesimo PF in più',''));if(l>=6)ot.push(xRow('Guaritore Benedetto','Quando curi un altro con un incantesimo, recuperi 2 + livello dell’incantesimo PF',''));if(l>=17)ot.push(xRow('Guarigione Suprema','I dadi di cura dei tuoi incantesimi danno sempre il massimo',''));}
+  if(l>=8){if(DOM_SMITE[sub]){const f=(l>=14?'2':'1')+'d8';ot.push(xRow('Colpo Divino',`Una volta per turno, quando colpisci con un’arma: ${f} danni ${DOM_SMITE[sub]}`,xRoll(f,'Colpo Divino','Danno',1)));}else ot.push(xRow('Incantesimi Potenti',`+${abilMod('sag')} (Saggezza) ai danni dei trucchetti da chierico`,''));}
+  if(l>=10)az.push(xRow('Intervento Divino',`Azione: tira d100, se ottieni ${l>=20?'qualsiasi risultato (successo automatico)':l+' o meno'} la divinità interviene. Dopo un successo aspetti 7 giorni`,xPill('x-divint','','Invoca',l>=20?'auto':'d100',1)));
+  return xCard('Azioni del chierico','Chierico',`CD ${dc} · Incanalare ${(resInfo('cdc')||{left:0}).left}/${(resInfo('cdc')||{x:{m:0}}).x.m}`,'',[xSec('Incanalare Divinità',cd),xSec('Azione',az),xSec('Azione bonus',bo),xSec('Altri usi',ot),xSec('Reazioni',re)]);
+}
+
+/* ── Druido ── */
+function druCard(){
+  const l=lvOf('Druido');if(!l)return'';const sub=subOf('Druido'),moon=sub==='Circolo della Luna';
+  const az=[],bo=[],ot=[];
+  if(l>=2){
+    const gs=moon?(l>=6?String(Math.floor(l/3)):'1'):(l>=8?'1':l>=4?'1/2':'1/4'),lim=l>=8?'':l>=4?', senza volare':', senza nuotare né volare';
+    const r=resInfo('wild');
+    (moon?bo:az).push(xRow('Forma Selvatica',`${moon?'Azione bonus':'Azione'}: ti trasformi in una bestia già vista, GS ${gs} o inferiore${lim}, per ${Math.max(1,Math.floor(l/2))} or${Math.floor(l/2)===1?'a':'e'}. ${l>=20?'Usi illimitati':'2 usi per riposo breve'}`,r?xUse('wild','Trasformati'):''));
+    if(moon){bo.push(xRow('Forma Selvatica da Combattimento','Trasformato, azione bonus: spendi uno slot e recuperi 1d8 PF per livello dello slot','<button class="pill tonal" data-act="x-moonheal"><span class="pl">Cura</span><span class="pv">slot</span></button>'));
+      if(l>=6)ot.push(xRow('Colpo Primordiale','In forma bestiale i tuoi attacchi sono magici',''));
+      if(l>=10)az.push(xRow('Forma Selvatica Elementale','Spendi due usi di Forma Selvatica per diventare un elementale dell’acqua, dell’aria, del fuoco o della terra',''));
+      if(l>=14)ot.push(xRow('Mille Forme','Lanci alterare se stesso a volontà',''));}
+  }
+  if(sub==='Circolo della Terra'){
+    if(l>=2)ot.push(xRow('Recupero Naturale',`Durante un riposo breve recuperi slot per un totale di ${Math.ceil(l/2)} livelli, nessuno di 6° o superiore. Una volta per riposo lungo`,xUse('natrec')));
+    if(l>=6)ot.push(xRow('Andatura sul Territorio','Il terreno difficile non magico e i vegetali non ti rallentano; vantaggio ai TS contro vegetali magici',''));
+    if(l>=10)ot.push(xRow('Interdizione della Natura','Non puoi essere affascinato o spaventato da elementali e folletti; immune a veleni e malattie',''));
+    if(l>=14)ot.push(xRow('Rifugio della Natura',`Bestie e vegetali che ti attaccano fanno un TS Saggezza CD ${dcOf('sag')} o devono scegliere un altro bersaglio`,''));
+  }
+  if(l>=18)ot.push(xRow('Incantesimi Bestiali','Lanci incantesimi da druido in forma bestiale (senza componenti materiali)',''));
+  if(l>=20)ot.push(xRow('Arcidruido','Forma Selvatica illimitata; ignori le componenti verbali, somatiche e materiali senza costo',''));
+  return xCard('Azioni del druido','Druido',`CD ${dcOf('sag')}`,'',[xSec('Azione',az),xSec('Azione bonus',bo),xSec('Altri usi',ot)]);
+}
+
+/* ── Guerriero ── */
+const MANOVRE=[['adesc','Attacco Adescante',0,'Quando colpisci: + dado ai danni, TS Saggezza o svantaggio ad attaccare altri che non siano te','dmg'],['affondo','Attacco con Affondo',0,'Portata +1,5 m per un attacco in mischia; se colpisci, + dado ai danni','dmg'],['finta','Attacco con Finta',0,'Azione bonus: vantaggio al prossimo attacco contro una creatura entro 1,5 m; se colpisci, + dado ai danni','dmg'],['manovra','Attacco con Manovra',0,'Quando colpisci: + dado ai danni e un alleato si sposta di metà velocità senza attacchi di opportunità dal bersaglio','dmg'],['spazzata','Attacco con Spazzata',0,'Quando colpisci in mischia: un’altra creatura entro 1,5 m subisce il dado se il tiro originale la colpirebbe','dmg'],['spinta','Attacco con Spinta',0,'Quando colpisci: + dado ai danni, TS Forza o spinto di 4,5 m','dmg'],['disarma','Attacco Disarmante',0,'Quando colpisci: + dado ai danni, TS Forza o lascia cadere un oggetto','dmg'],['minacc','Attacco Minaccioso',0,'Quando colpisci: + dado ai danni, TS Saggezza o spaventato fino alla fine del tuo prossimo turno','dmg'],['preciso','Attacco Preciso',0,'Aggiungi il dado al tiro per colpire, prima o dopo averlo tirato','hit'],['sbilanc','Attacco Sbilanciante',0,'Quando colpisci: + dado ai danni, TS Forza o prono (Grande o più piccolo)','dmg'],['comand','Colpo del Comandante',0,'Rinunci a un attacco e usi l’azione bonus: un alleato attacca con la reazione e aggiunge il dado ai danni','dmg'],['distr','Colpo Distraente',0,'Quando colpisci: + dado ai danni, il prossimo attacco di un alleato contro il bersaglio ha vantaggio','dmg'],['incor','Incoraggiamento',0,'Azione bonus: un alleato ottiene PF temporanei pari al dado + il tuo Carisma','hp'],['parata','Parata',0,'Reazione quando ti colpiscono in mischia: riduci i danni del dado + Destrezza','par'],['replica','Replica',0,'Reazione quando ti mancano in mischia: attacchi la creatura e aggiungi il dado ai danni','dmg'],['scarto','Scarto Elusivo',0,'Quando ti muovi: aggiungi il dado alla CA finché non smetti di muoverti','ac']];
+const supDie=l=>l>=18?12:l>=10?10:8;
+function fightCard(){
+  const l=lvOf('Guerriero');if(!l)return'';const sub=subOf('Guerriero');
+  const az=[],bo=[],ot=[],re=[],mv=[];
+  if(l>=5)az.push(xRow('Attacco Extra',`${atkN(l,[5,11,20])} attacchi con l’azione di Attacco`,''));
+  bo.push(xRow('Recuperare Energie',`Azione bonus: recuperi 1d10 + ${l} PF. Una volta per riposo breve`,xPill('x-sw','','Cura · '+((resInfo('sw')||{left:0}).left)+'/1','1d10+'+l,1)));
+  if(l>=2)ot.push(xRow('Azione Impetuosa',`Un’azione in più nel turno${l>=17?' (due usi per riposo, uno per turno)':''}${sub==='Cavaliere Mistico'&&l>=15?'. Carica Arcana: ti teletrasporti fino a 9 m prima o dopo':''}`,xUse('surge')));
+  if(l>=9)ot.push(xRow('Indomito','Ripeti un tiro salvezza fallito e tieni il nuovo risultato',xUse('indom')));
+  if(sub==='Campione'){ot.push(xRow('Critico Migliorato',`Critico con ${l>=15?'18–20':'19–20'} al tiro per colpire`,''));if(l>=7)ot.push(xRow('Atleta Straordinario',`+${Math.ceil(pb()/2)} alle prove di Forza, Destrezza e Costituzione in cui non sei competente`,''));if(l>=18)ot.push(xRow('Sopravvissuto',`All’inizio del turno, se hai metà PF o meno (e almeno 1), recuperi ${5+abilMod('cos')} PF`,''));}
+  if(sub==='Maestro di Battaglia'&&l>=3){
+    const die='1d'+supDie(l),dc=8+pb()+Math.max(abilMod('for'),abilMod('des')),mx=l>=15?9:l>=10?7:l>=7?5:3;
+    chosen('man',MANOVRE).forEach(k=>{const m=MANOVRE.find(x=>x[0]===k);mv.push(xRow(esc(m[1]),esc(m[3])+(/TS/.test(m[3])?` · CD ${dc}`:''),xPill('x-sup',`data-k="${k}"`,'Usa',die,1)));});
+    mv.unshift(`<div class="row-h"><span class="sub">Dado ${die} · CD manovre ${dc} · ${(()=>{const n=(resInfo('sup')||{left:0}).left;return n===1?'1 dado rimasto':n+' dadi rimasti';})()}</span><button class="btn text sm" data-act="x-ch-pick" data-g="man">Scegli (${chosen('man',MANOVRE).length}/${mx})</button></div>`);
+  }
+  if(sub==='Cavaliere Mistico'){
+    if(l>=3)bo.push(xRow('Arma Vincolata','Azione bonus: richiami in mano un’arma vincolata (massimo due). Non puoi esserne disarmato',''));
+    if(l>=7)bo.push(xRow(l>=18?'Magia da Guerra Migliorata':'Magia da Guerra',`Quando lanci ${l>=18?'un incantesimo':'un trucchetto'} con l’azione, un attacco con un’arma come azione bonus`,''));
+    if(l>=10)ot.push(xRow('Colpo Mistico','Quando colpisci con un’arma, la creatura ha svantaggio al prossimo TS contro un tuo incantesimo entro la fine del tuo prossimo turno',''));
+  }
+  return xCard('Azioni del guerriero','Guerriero',`Livello ${l}`,'',[xSec('Azione',az),xSec('Azione bonus',bo),xSec('Altri usi',ot),mv.length?`<h3 class="group-h" style="margin:4px 0 0">Manovre</h3><div class="list">${mv.join('')}</div>`:'',xSec('Reazioni',re)]);
+}
+
+/* ── Ladro ── */
+function rogCard(){
+  const l=lvOf('Ladro');if(!l)return'';const sub=subOf('Ladro'),sa=Math.ceil(l/2)+'d6';
+  const az=[],bo=[],ot=[],re=[];
+  ot.push(xRow('Attacco Furtivo',`Una volta per turno, con un’arma accurata o a distanza: +${sa} se hai vantaggio, o se un alleato è entro 1,5 m dal bersaglio e non hai svantaggio`,xRoll(sa,'Attacco Furtivo','Danno',1)));
+  if(l>=2)bo.push(xRow('Azione Scaltra',`Azione bonus: Disimpegno, Nascondersi o Scatto${sub==='Ladro'&&l>=3?'. Mani Veloci: anche Rapidità di Mano, arnesi da scasso o Usare un Oggetto':''}`,''));
+  if(l>=5)re.push(xRow('Schivata Prodigiosa','Reazione: dimezzi i danni di un attacco che vedi',''));
+  if(l>=7)ot.push(xRow('Elusione','TS Destrezza per dimezzare: nessun danno se lo superi, metà se lo fallisci',''));
+  if(l>=11)ot.push(xRow('Dote Affidabile','Nelle prove in cui sei competente, un 9 o meno sul d20 vale 10',''));
+  if(sub==='Assassino'&&l>=3){ot.push(xRow('Assassinare','Vantaggio contro chi non ha ancora agito nel combattimento; ogni colpo a segno su una creatura sorpresa è un critico',xRoll((2*Math.ceil(l/2))+'d6','Attacco Furtivo critico','Furtivo ×2')));if(l>=17)ot.push(xRow('Colpo Mortale',`Contro una creatura sorpresa: TS Costituzione CD ${dcOf('des')}, se fallisce i danni dell’attacco raddoppiano`,''));}
+  if(sub==='Ladro'){if(l>=9)ot.push(xRow('Furtività Suprema','Vantaggio a Furtività se ti muovi di metà velocità o meno',''));if(l>=13)ot.push(xRow('Usare Oggetto Magico','Ignori i requisiti di classe, razza e livello degli oggetti magici',''));if(l>=17)ot.push(xRow('Riflessi da Furfante','Nel primo round di ogni combattimento fai due turni: il secondo all’iniziativa − 10',''));}
+  if(sub==='Mistificatore Arcano'){const dc=dcOf('int');if(l>=3)bo.push(xRow('Gioco di Prestigio della Mano Magica','Mano magica invisibile: rubi o riponi oggetti e usi gli arnesi da scasso a distanza; la controlli con l’azione bonus di Azione Scaltra',''));if(l>=9)ot.push(xRow('Imboscata Magica','Se sei nascosto quando lanci un incantesimo, il bersaglio ha svantaggio ai TS contro di esso in quel turno',''));if(l>=13)bo.push(xRow('Ingannatore Versatile','Azione bonus: con la mano magica entro 1,5 m da una creatura hai vantaggio ad attaccarla fino alla fine del turno',''));if(l>=17)re.push(xRow('Ladro di Incantesimi',`Reazione dopo un incantesimo su di te: TS con la caratteristica da incantatore dell’avversario CD ${dc}; se fallisce l’effetto non ti tocca e rubi l’incantesimo per 8 ore`,xUse('spthief')));}
+  if(l>=20)ot.push(xRow('Colpo di Fortuna','Un attacco mancato diventa a segno, oppure una prova fallita vale 20',xUse('luck')));
+  return xCard('Azioni del ladro','Ladro',`Attacco Furtivo ${sa}`,'',[xSec('Azione',az),xSec('Azione bonus',bo),xSec('Altri usi',ot),xSec('Reazioni',re)]);
+}
+
+/* ── Paladino ── */
+const OATH_CD={'Giuramento di Devozione':[['Arma Consacrata',`Azione: per 1 minuto un’arma che impugni aggiunge il tuo Carisma (min +1) ai tiri per colpire, fa luce ed è magica`],['Scacciare i Sacrileghi','Azione: immondi e non morti entro 9 m fanno un TS Saggezza o sono scacciati per 1 minuto',1]],
+ 'Giuramento degli Antichi':[['Collera della Natura','Azione: rampicanti spettrali trattengono una creatura entro 3 m (TS Forza o Destrezza, si ripete a ogni turno)',1],['Scacciare gli Infedeli','Azione: folletti e immondi entro 9 m fanno un TS Saggezza o sono scacciati per 1 minuto',1]],
+ 'Giuramento di Vendetta':[['Abiurare Nemico','Azione: una creatura entro 18 m fa un TS Saggezza (svantaggio se immondo o non morto): se fallisce è spaventata con velocità 0 per 1 minuto, altrimenti velocità dimezzata',1],['Giuramento di Inimicizia','Azione bonus: vantaggio ai tiri per colpire contro una creatura entro 3 m per 1 minuto']]};
+const OATH_20={'Giuramento di Devozione':['Nube Sacra','Azione: per 1 minuto luce solare di 9 m; i nemici che iniziano il turno nella luce subiscono 10 danni radiosi; vantaggio ai TS contro incantesimi di immondi e non morti'],'Giuramento degli Antichi':['Campione degli Antichi','Azione: per 1 minuto recuperi 10 PF a inizio turno, lanci incantesimi da paladino da 1 azione come azione bonus, i nemici entro 3 m hanno svantaggio ai TS contro i tuoi incantesimi e Incanalare Divinità'],'Giuramento di Vendetta':['Angelo Vendicatore','Azione: per 1 ora voli a 18 m e hai un’aura di 9 m che spaventa i nemici (TS Saggezza); chi è spaventato subisce attacchi con vantaggio']};
+function palCard(){
+  const l=lvOf('Paladino');if(!l)return'';const sub=subOf('Paladino'),dc=dcOf('car');
+  const az=[],bo=[],ot=[],re=[],cd=[];
+  az.push(xRow('Imposizione delle Mani','Azione: tocchi una creatura e ripristini PF dalla riserva, oppure spendi 5 punti per curare una malattia o un veleno',xPill('x-loh','','Usa',((resInfo('loh')||{left:0}).left)+' PF',1)));
+  if(l>=5)az.push(xRow('Attacco Extra','2 attacchi con l’azione di Attacco',''));
+  if(l>=2)ot.push(xRow('Punizione Divina','Quando colpisci in mischia: spendi uno slot per 2d8 radiosi +1d8 per livello sopra il 1° (max 5d8), +1d8 contro immondi e non morti',xPill('x-smite','','Punisci','slot',1)));
+  if(l>=11)ot.push(xRow('Punizione Divina Migliorata','Ogni colpo in mischia con un’arma fa 1d8 radiosi extra',xRoll('1d8','Punizione Divina Migliorata','Danno',1)));
+  az.push(xRow('Percezione del Divino','Azione: fino alla fine del tuo prossimo turno senti celestiali, immondi e non morti entro 18 m',xUse('sense')));
+  if(l>=6)ot.push(xRow('Aura di Protezione',`Tu e gli amici entro ${l>=18?9:3} m aggiungete +${Math.max(1,abilMod('car'))} ai tiri salvezza`,''));
+  if(l>=10)ot.push(xRow('Aura di Coraggio',`Tu e gli amici entro ${l>=18?9:3} m non potete essere spaventati`,''));
+  if(l>=14)az.push(xRow('Tocco Purificatore','Azione: termini un incantesimo su di te o su una creatura consenziente che tocchi',xUse('cleanse')));
+  if(l>=3)(OATH_CD[sub]||[]).forEach(([n,t,ts])=>cd.push(xRow(n,t+(ts?` · CD ${dc}`:''),xPill('x-cd',`data-c="cdp" data-o="${esc(n)}"`,'Usa',cdLeft('cdp'),1))));
+  if(sub==='Giuramento di Devozione'){if(l>=7)ot.push(xRow('Aura di Devozione',`Tu e gli amici entro ${l>=18?9:3} m non potete essere affascinati`,''));if(l>=15)ot.push(xRow('Purezza di Spirito','Sei sempre sotto protezione dal bene e dal male',''));}
+  if(sub==='Giuramento degli Antichi'){if(l>=7)ot.push(xRow('Aura di Interdizione',`Tu e gli amici entro ${l>=18?9:3} m avete resistenza ai danni degli incantesimi`,''));if(l>=15)ot.push(xRow('Sentinella Imperitura','Se scendi a 0 PF senza morire sul colpo, resti a 1 PF. Una volta per riposo lungo',xUse('undying')));}
+  if(sub==='Giuramento di Vendetta'){if(l>=7)re.push(xRow('Vendicatore Implacabile','Quando colpisci con un attacco di opportunità, ti muovi fino a metà velocità senza provocare attacchi',''));if(l>=15)re.push(xRow('Anima di Vendetta','Reazione: quando la creatura del tuo Giuramento di Inimicizia attacca, la attacchi in mischia',''));}
+  if(l>=20&&OATH_20[sub])az.push(xRow(OATH_20[sub][0],OATH_20[sub][1]+'. Una volta per riposo lungo',xUse('cap20')));
+  return xCard('Azioni del paladino','Paladino',`CD ${dc}`,'',[xSec('Azione',az),xSec('Azione bonus',bo),xSec('Incanalare Divinità',cd),xSec('Altri usi',ot),xSec('Reazioni',re)]);
+}
+
+/* ── Ranger ── */
+const HUNT={hunt3:[['orda','Devastatore dell’Orda',0,'Una volta per turno, quando attacchi con un’arma, un attacco extra contro un’altra creatura entro 1,5 m dal bersaglio'],['colossi','Sterminatore di Colossi',0,'Una volta per turno, +1d8 danni a una creatura sotto il suo massimo di PF'],['giganti','Uccisore di Giganti',0,'Reazione: quando una creatura Grande o più grande entro 1,5 m ti attacca, la attacchi']],
+ hunt7:[['multi','Difesa dal Multiattacco',0,'Quando una creatura ti colpisce, +4 CA contro i suoi attacchi successivi nel turno'],['sfuggire','Sfuggire all’Orda',0,'Gli attacchi di opportunità contro di te hanno svantaggio'],['acciaio','Volontà d’Acciaio',0,'Vantaggio ai TS contro spaventato']],
+ hunt11:[['turbin','Attacco Turbinante',0,'Azione: un attacco in mischia contro ogni creatura entro 1,5 m'],['raffica','Raffica',0,'Azione: un attacco a distanza contro ogni creatura entro 3 m da un punto che vedi']],
+ hunt15:[['elus','Elusione',0,'TS Destrezza per dimezzare: nessun danno se lo superi, metà se lo fallisci'],['marea','Opporsi alla Marea',0,'Reazione: chi ti manca in mischia ripete l’attacco contro un’altra creatura'],['schiv','Schivata Prodigiosa',0,'Reazione: dimezzi i danni di un attacco che vedi']]};
+function rangCard(){
+  const l=lvOf('Ranger');if(!l)return'';const sub=subOf('Ranger');
+  const az=[],bo=[],ot=[],hu=[];
+  if(l>=3)az.push(xRow('Consapevolezza Primordiale','Azione: spendi uno slot; per 1 minuto per livello dello slot senti aberrazioni, celestiali, draghi, elementali, folletti, immondi e non morti entro 1,5 km',''));
+  if(l>=5)az.push(xRow('Attacco Extra','2 attacchi con l’azione di Attacco',''));
+  if(l>=10)ot.push(xRow('Nascondersi in Piena Vista','1 minuto per mimetizzarti: +10 a Furtività finché resti immobile',''));
+  if(l>=14)bo.push(xRow('Svanire','Nascondersi come azione bonus; non lasci tracce non magiche',''));
+  if(l>=18)ot.push(xRow('Sensi Ferini','Nessuno svantaggio contro creature che non vedi; senti quelle invisibili entro 9 m',''));
+  if(l>=20)ot.push(xRow('Sterminatore di Nemici',`Una volta per turno, +${abilMod('sag')} (Saggezza) al tiro per colpire o ai danni contro un nemico prescelto`,''));
+  if(sub==='Cacciatore')[[3,'hunt3','Preda del Cacciatore'],[7,'hunt7','Tattiche Difensive'],[11,'hunt11','Multiattacco'],[15,'hunt15','Difesa del Cacciatore Superiore']].forEach(([lv,g,n])=>{if(l<lv)return;const c=chosen(g,HUNT[g])[0],x=c&&HUNT[g].find(y=>y[0]===c);hu.push(`<div class="item" style="flex-direction:column;align-items:stretch"><div class="row-main"><b style="white-space:normal">${n} (${lv}°)${x?' · '+esc(x[1]):''}</b><small style="white-space:normal">${x?esc(x[3]):'Scegli un privilegio'}</small></div>${chChips(g,HUNT[g],1,l)}${c==='colossi'?`<div style="align-self:flex-end">${xRoll('1d8','Sterminatore di Colossi','Danno',1)}</div>`:''}</div>`);});
+  if(sub==='Signore delle Bestie'){az.push(xRow('Compagno del Ranger',`Azione: ordini alla bestia Aiuto, Attacco, Disimpegno, Scatto o Schivata. La bestia aggiunge +${pb()} a CA, attacchi, danni e competenze${l>=5?'. Con Attacco Extra attacchi anche tu quando le ordini di attaccare':''}`,''));if(l>=7)bo.push(xRow('Addestramento Straordinario','Azione bonus: se la bestia non attacca, le ordini Aiuto, Disimpegno, Scatto o Schivata',''));if(l>=11)ot.push(xRow('Furia Bestiale','Quando attacca, la bestia fa due attacchi o Multiattacco',''));if(l>=15)ot.push(xRow('Condividere Incantesimi','Gli incantesimi su di te possono influenzare anche la bestia entro 9 m',''));}
+  return xCard('Azioni del ranger','Ranger',`CD ${dcOf('sag')}`,'',[xSec('Azione',az),xSec('Azione bonus',bo),xSec('Archetipo',hu),xSec('Altri usi',ot)]);
+}
+
+/* ── Stregone ── */
+const METAMAGIA=[['celato','Incantesimo Celato',0,'Senza componenti somatiche né verbali',1],['distante','Incantesimo Distante',0,'Gittata raddoppiata, o 9 m se era a contatto',1],['esteso','Incantesimo Esteso',0,'Durata raddoppiata (massimo 24 ore)',1],['intens','Incantesimo Intensificato',0,'Un bersaglio ha svantaggio al primo TS contro l’incantesimo',3],['potenz','Incantesimo Potenziato',0,'Ritiri fino a Carisma dadi di danno (anche insieme a un’altra metamagia)',1],['preciso','Incantesimo Preciso',0,'Fino a Carisma creature superano automaticamente il TS',1],['raddop','Incantesimo Raddoppiato',0,'Un secondo bersaglio per un incantesimo a bersaglio singolo; costa il livello dell’incantesimo (1 per un trucchetto)','liv.'],['rapido','Incantesimo Rapido',0,'Tempo di lancio da 1 azione a 1 azione bonus',2]];
+const SLOTCOST=[2,3,5,6,7];
+function sorcCard(){
+  const l=lvOf('Stregone');if(!l)return'';const sub=subOf('Stregone'),r=resInfo('sorc');
+  const fm=[],mm=[],ot=[],bo=[],az=[],re=[];
+  const head=r?`<div class="row-h" style="min-height:44px"><div><b>Punti stregoneria</b><br><span class="sub">CD ${dcOf('car')} · riposo lungo</span></div><div class="qty"><button data-act="res-d" data-k="sorc" data-d="1" aria-label="Spendi un punto stregoneria">${ic('minus',20)}</button><b style="min-width:56px">${r.left}/${r.x.m}</b><button data-act="res-d" data-k="sorc" data-d="-1" aria-label="Recupera un punto stregoneria">${ic('add',20)}</button></div></div>`:'';
+  if(l>=2){
+    fm.push(xRow('Creare uno slot','Azione bonus: trasformi punti in uno slot (fino al 5°). Sparisce con il riposo lungo',`<div class="chips" style="justify-content:flex-end;max-width:168px">${SLOTCOST.map((c,i)=>`<button class="chip" data-act="x-mkslot" data-l="${i}">${i+1}° · ${c}</button>`).join('')}</div>`));
+    fm.push(xRow('Convertire uno slot','Azione bonus: spendi uno slot e ottieni punti pari al suo livello',`<div class="chips" style="justify-content:flex-end;max-width:168px">${S.slots.map((s,i)=>s&&s.m-s.u>0?`<button class="chip" data-act="x-cvslot" data-l="${i}">${i+1}° → +${i+1}</button>`:'').join('')||'<span class="sub">nessuno slot</span>'}</div>`));
+  }
+  if(l>=3){const mx=l>=17?4:l>=10?3:2;mm.push(`<div class="row-h"><span class="sub">Una metamagia per incantesimo (Potenziato si somma)</span><button class="btn text sm" data-act="x-ch-pick" data-g="meta">Scegli (${chosen('meta',METAMAGIA).length}/${mx})</button></div>`);
+    chosen('meta',METAMAGIA).forEach(k=>{const m=METAMAGIA.find(x=>x[0]===k);mm.push(xRow(esc(m[1]),esc(m[3]),xPill('x-meta',`data-k="${k}"`,'Usa',(m[4]==='liv.'?'liv.':m[4])+' pt',1)));});}
+  if(sub==='Discendenza Draconica'){if(l>=6)ot.push(xRow('Affinità Elementale',`+${abilMod('car')} (Carisma) a un tiro di danni del tipo del tuo antenato; 1 punto per resistenza a quel tipo per 1 ora`,xPill('x-pts','data-n="1" data-l="Affinità Elementale"','Resist.','1 pt',1)));if(l>=14)bo.push(xRow('Ali di Drago','Azione bonus: ali con velocità di volare pari alla tua velocità',''));if(l>=18)az.push(xRow('Presenza Draconica','Azione: aura di 18 m per 1 minuto (concentrazione); chi inizia il turno dentro fa un TS Saggezza o è affascinato o spaventato',xPill('x-pts','data-n="5" data-l="Presenza Draconica"','Usa','5 pt',1)));}
+  if(sub==='Magia Selvaggia'){ot.push(xRow('Impulso di Magia Selvaggia','Dopo un incantesimo di 1° livello o più il DM può farti tirare un d20: con 1 tiri sulla tabella degli Impulsi',xPill('x-surge','','Tira','d20',1)));ot.push(xRow('Onde di Caos','Vantaggio a un tiro per colpire, una prova o un TS. Si ricarica con riposo lungo o dopo un Impulso',xUse('tides')));if(l>=6)re.push(xRow('Piegare la Fortuna','Reazione: 2 punti per aggiungere o togliere 1d4 al tiro di un’altra creatura',xPill('x-bend','','Usa','2 pt · 1d4',1)));if(l>=14)ot.push(xRow('Caos Controllato','Sulla tabella degli Impulsi tiri due volte e scegli',''));if(l>=18)ot.push(xRow('Bombardamento Magico','Una volta per turno, se un dado di danno fa il massimo lo ritiri e lo aggiungi',''));}
+  if(l>=20)ot.push(xRow('Ripristino Stregonesco','Recuperi 4 punti stregoneria a ogni riposo breve',''));
+  return xCard('Azioni dello stregone','Stregone',`Livello ${l}`,head,[xSec('Fonte di Magia',fm),mm.length?`<h3 class="group-h" style="margin:4px 0 0">Metamagia</h3><div class="list">${mm.join('')}</div>`:'',xSec('Azione',az),xSec('Azione bonus',bo),xSec('Altri usi',ot),xSec('Reazioni',re)]);
+}
+const classCards=()=>[barbCard(),bardCard(),clerCard(),druCard(),fightCard(),rogCard(),palCard(),rangCard(),sorcCard()].join('');
+const CHLIST={man:[MANOVRE,l=>{const g=lvOf('Guerriero');return g>=15?9:g>=10?7:g>=7?5:3;},'Guerriero','Manovre','Ne conosci 3 al 3° livello e 2 in più al 7°, 10° e 15°.'],meta:[METAMAGIA,()=>{const s=lvOf('Stregone');return s>=17?4:s>=10?3:2;},'Stregone','Metamagia','Ne conosci 2 al 3° livello, una in più al 10° e al 17°.'],
+ tot3:[TOTEM,()=>1,'Barbaro'],tot6:[TOTEM,()=>1,'Barbaro'],tot14:[TOTEM,()=>1,'Barbaro'],hunt3:[HUNT.hunt3,()=>1,'Ranger'],hunt7:[HUNT.hunt7,()=>1,'Ranger'],hunt11:[HUNT.hunt11,()=>1,'Ranger'],hunt15:[HUNT.hunt15,()=>1,'Ranger']};
 /* ───────── Monaco: Arti Marziali e ki (Manuale del Giocatore, cap. 3) ───────── */
 const monkL=()=>lvOf('Monaco');
 const maDie=l=>l>=17?10:l>=11?8:l>=5?6:4;
@@ -2085,6 +2349,29 @@ document.addEventListener('click',e=>{
       showRoll({label:`${a.name}: danno${a.type?' '+a.type:''}`,total:r.total,detail:r.detail+(why?' ('+why+')':''),tag:crit?'Critico':''});break;}
     case 'mk-atk':{const t=D.k==='u'?unarmed():monkWeapons().find(w=>'w'+w.i===D.k);if(t)rollD20(t.name+': colpire',t.hit,t.parts);break;}
     case 'mk-dmg':{const t=D.k==='u'?unarmed():monkWeapons().find(w=>'w'+w.i===D.k);if(!t)break;const r=rollFormula(t.dmg,crit);if(r)showRoll({label:`${t.name}: danno ${t.type}`,total:r.total,detail:r.detail,tag:crit?'Critico':''});break;}
+    case 'x-res':useRes(D.k);break;
+    case 'x-roll':xRollF(D.f,D.l,D.c==='1');break;
+    case 'x-resroll':useRes(D.k,D.l,()=>xRollF(D.f,D.l,false));break;
+    case 'x-adv':S.rollMode='a';persist();renderTop();toast('Vantaggio attivo per i prossimi tiri: torna a Normale dal pulsante in alto.');break;
+    case 'x-relent':{const dc=10+5*(S.relent||0);S.relent=(S.relent||0)+1;persist();render();rollD20(`Ira Implacabile · TS Cos CD ${dc}`,saveB('cos'),saveParts('cos'));break;}
+    case 'x-sw':useRes('sw','Recuperare Energie',()=>{const l=lvOf('Guerriero'),r=rollFormula('1d10+'+l);heal(r.total);showRoll({label:'Recuperare Energie',total:'+'+r.total,detail:r.detail+' PF'});});break;
+    case 'x-cd':{const k=D.c,o=D.o,f=D.f,dc=dcOf(k==='cdc'?'sag':'car');useRes(k,'Incanalare Divinità',()=>{if(f)xRollF(f,o+' · Incanalare Divinità',false,'TS CD '+dc+', metà se lo supera');else toast(`${o}: usato Incanalare Divinità.`);});break;}
+    case 'x-divint':useRes('divint','Intervento Divino',()=>{const l=lvOf('Chierico'),r=1+Math.floor(Math.random()*100),ok=l>=20||r<=l;showRoll({label:'Intervento Divino',total:l>=20?'✓':r,detail:ok?'La divinità interviene. Non puoi riprovare per 7 giorni.':`Serviva ${l} o meno: nessun intervento. Puoi riprovare dopo un riposo lungo.`,tag:ok?'Successo':'',bad:!ok});});break;
+    case 'x-ch-pick':{const c=CHLIST[D.g];if(c)chPanel(D.g,c[3],c[0],c[1](),lvOf(c[2]),c[4]);break;}
+    case 'x-ch-t':{const c=CHLIST[D.g];if(!c)break;const mx=c[1]();S.ch=S.ch||{};let a=chosen(D.g,c[0]);const j=a.indexOf(D.k);if(j>=0)a.splice(j,1);else if(mx===1)a=[D.k];else if(a.length<mx)a.push(D.k);S.ch[D.g]=a;persist();render();if(root.classList.contains('open')&&XPANEL){const b=$('#sheet-body',root),sc=b?b.scrollTop:0;closeSheetInstant();XPANEL();root.classList.add('open');const nb=$('#sheet-body',root);if(nb)nb.scrollTop=sc;}break;}
+    case 'x-sup':{const m=MANOVRE.find(x=>x[0]===D.k);if(!m)break;const die='1d'+supDie(lvOf('Guerriero'));useRes('sup',m[1],()=>{const r=rollFormula(die,m[4]==='dmg'&&crit);const ex={dmg:'da aggiungere ai danni',hit:'da aggiungere al tiro per colpire',hp:`PF temporanei all’alleato: ${r.total+abilMod('car')} (con Carisma)`,par:`danni ridotti di ${r.total+abilMod('des')} (con Destrezza)`,ac:`CA +${r.total} finché ti muovi`}[m[4]];showRoll({label:m[1]+' · dado di superiorità',total:r.total,detail:r.detail+' · '+ex});});break;}
+    case 'x-slot-go':{const cb=SLOTCB;SLOTCB=null;closeSheet();if(cb)cb(D.l);break;}
+    case 'x-smite':slotPick('Punizione Divina','Scegli lo slot da spendere: i danni radiosi si aggiungono a quelli dell’arma.',lv=>Math.min(5,lv+1)+'d8',id=>{const lv=slotSpend(id);persist();render();const n=Math.min(5,lv+1),r=rollFormula(n+'d8',crit),e=rollFormula('1d8',crit);showRoll({label:`Punizione Divina · slot ${lv}°`,total:r.total,detail:`${r.detail} radiosi · contro immondi o non morti +${e.detail} = ${r.total+e.total}`,tag:crit?'Critico':''});});break;
+    case 'x-moonheal':slotPick('Forma Selvatica da Combattimento','Spendi uno slot: recuperi 1d8 PF per livello dello slot.',lv=>lv+'d8 PF',id=>{const lv=slotSpend(id),r=rollFormula(lv+'d8');heal(r.total);showRoll({label:'Forma Selvatica da Combattimento',total:'+'+r.total,detail:r.detail+' PF'});});break;
+    case 'x-loh':{const r=resInfo('loh');if(!r)break;openSheet({title:'Imposizione delle Mani',body:`<p>Riserva: <b>${r.left}</b> PF su ${r.x.m}.</p><div class="fields">${tf('loh-n','PF da ripristinare',Math.min(r.left,Math.max(1,S.hpMax-S.hp)),'number','min="1"')}<button class="btn full" data-act="x-loh-go" data-m="self">Cura te stesso</button><button class="btn outline full" data-act="x-loh-go" data-m="other">Cura un’altra creatura</button><button class="btn outline full" data-act="x-loh-go" data-m="cure">Cura una malattia o un veleno (5 PF)</button></div>`});break;}
+    case 'x-loh-go':{const r=resInfo('loh');if(!r)break;const n=D.m==='cure'?5:Math.max(1,Math.round(+val('loh-n')||0));if(n>r.left){toast(`Nella riserva restano ${r.left} PF.`);break;}if(D.m==='self'&&S.hp>=S.hpMax){toast('Hai già tutti i punti ferita.');break;}const nn=D.m==='self'?Math.min(n,S.hpMax-S.hp):n;S.res=S.res||{};S.res.loh=(S.res.loh||0)+nn;closeSheet();if(D.m==='self'){heal(nn);break;}persist();render();toast(D.m==='cure'?`Malattia o veleno curati: restano ${r.left-nn} PF nella riserva.`:`Ripristinati ${nn} PF: restano ${r.left-nn} PF nella riserva.`);break;}
+    case 'x-mkslot':{const i=+D.l,c=SLOTCOST[i],sl=S.slots[i];if(!sl||!sl.m){toast(`Non hai slot di ${i+1}° livello sulla scheda.`);break;}if(sl.u<=0){toast(`Hai già tutti gli slot di ${i+1}° livello.`);break;}spendPts('sorc',c,'Creare uno slot',()=>{sl.u--;persist();render();toast(`Slot di ${i+1}° livello creato: spesi ${c} punti.`);});break;}
+    case 'x-cvslot':{const i=+D.l,sl=S.slots[i];if(!sl||sl.m-sl.u<=0||!resInfo('sorc'))break;sl.u++;S.res=S.res||{};const used=S.res.sorc||0,gain=Math.min(i+1,used);S.res.sorc=used-gain;persist();render();toast(`Slot di ${i+1}° livello convertito: +${gain} punti${gain<i+1?' (eri già al massimo)':''}.`);break;}
+    case 'x-meta':{const m=METAMAGIA.find(x=>x[0]===D.k);if(!m)break;if(m[4]==='liv.'){openSheet({title:m[1],body:`<p>Costa punti pari al livello dell’incantesimo (1 per un trucchetto).</p><div class="chips">${[0,1,2,3,4,5,6,7,8,9].map(v=>`<button class="chip" data-act="x-pts-go" data-n="${Math.max(1,v)}" data-l="${esc(m[1])}">${v?v+'°':'Trucchetto'} · ${Math.max(1,v)} pt</button>`).join('')}</div>`});break;}spendPts('sorc',m[4],m[1]);break;}
+    case 'x-pts-go':closeSheet();spendPts('sorc',+D.n,D.l);break;
+    case 'x-pts':spendPts('sorc',+D.n,D.l);break;
+    case 'x-bend':spendPts('sorc',2,'Piegare la Fortuna',()=>{const r=d(4);showRoll({label:'Piegare la Fortuna · 2 punti',total:'±'+r,detail:`1d4: [${r}] da aggiungere o togliere al tiro`});});break;
+    case 'x-surge':{const r=d(20);if(r===1&&S.res&&S.res.tides){S.res.tides=0;persist();render();}showRoll({label:'Impulso di Magia Selvaggia',total:r,detail:r===1?'Tira sulla tabella degli Impulsi di Magia Selvaggia. Onde di Caos si ricarica.':'Nessun impulso',tag:r===1?'Impulso!':''});break;}
     case 'mk-disc-pick':discPanel();break;
     case 'mk-disc-t':{const l=monkL(),x=DISC.find(d=>d[0]===D.k);if(!x)break;S.disc=discKnown();const j=S.disc.indexOf(D.k);if(j>=0)S.disc.splice(j,1);else if(S.disc.length<discSlots(l)&&l>=x[2])S.disc.push(D.k);persist();render();const b=$('#sheet-body',root),sc=b?b.scrollTop:0;closeSheetInstant();discPanel();root.classList.add('open');const nb=$('#sheet-body',root);if(nb)nb.scrollTop=sc;break;}
     case 'mk-disc':discUse(D.k);break;
