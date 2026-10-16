@@ -521,6 +521,39 @@ const ALIGN=['Legale buono','Neutrale buono','Caotico buono','Legale neutrale','
 const BGS={'Accolito':['Intuizione','Religione'],'Artigiano di gilda':['Intuizione','Persuasione'],'Ciarlatano':['Inganno','Rapidità di Mano'],'Criminale':['Inganno','Furtività'],'Eremita':['Medicina','Religione'],'Eroe popolare':['Addestrare Animali','Sopravvivenza'],'Forestiero':['Atletica','Sopravvivenza'],'Intrattenitore':['Acrobazia','Intrattenere'],'Marinaio':['Atletica','Percezione'],'Monello':['Furtività','Rapidità di Mano'],'Nobile':['Persuasione','Storia'],'Sapiente':['Arcano','Storia'],'Soldato':['Atletica','Intimidire']};
 const SUBS={Barbaro:['Cammino del Berserker','Cammino del Combattente Totemico'],Bardo:['Collegio della Sapienza','Collegio del Valore'],Chierico:['Dominio della Conoscenza','Dominio dell’Inganno','Dominio della Guerra','Dominio della Luce','Dominio della Natura','Dominio della Tempesta','Dominio della Vita'],Druido:['Circolo della Terra','Circolo della Luna'],Guerriero:['Campione','Maestro di Battaglia','Cavaliere Mistico'],Ladro:['Ladro','Assassino','Mistificatore Arcano'],Mago:['Scuola di Abiurazione','Scuola di Ammaliamento','Scuola di Divinazione','Scuola di Evocazione','Scuola di Illusione','Scuola di Invocazione','Scuola di Negromanzia','Scuola di Trasmutazione'],Monaco:['Via della Mano Aperta','Via dell’Ombra','Via dei Quattro Elementi'],Paladino:['Giuramento di Devozione','Giuramento degli Antichi','Giuramento di Vendetta'],Ranger:['Cacciatore','Signore delle Bestie'],Stregone:['Discendenza Draconica','Magia Selvaggia'],Warlock:['Il Signore Fatato','L’Immondo','Il Grande Antico']};
 const WEAP=[['Colpo senz’armi', '1', 'contundente', 'for', 'm1', 'Nessuna arma'], ['Ascia', '1d6', 'tagliente', 'for', 'm1', 'Leggera, Lancio (6/18)'], ['Ascia da Battaglia', '1d8', 'tagliente', 'for', 'm1', 'Versatile (1d10)'], ['Bastone Ferrato', '1d6', 'contundente', 'for', 'm1', 'Versatile (1d8)'], ['Falcetto', '1d4', 'tagliente', 'for', 'm1', 'Leggera'], ['Frusta', '1d4', 'tagliente', 'f', 'm1', 'Accurata, Portata'], ['Giavellotto', '1d6', 'perforante', 'for', 'm1', 'Lancio (9/36)'], ['Lancia', '1d6', 'perforante', 'for', 'm1', 'Lancio (6/18), Versatile (1d8)'], ['Lancia da Cavaliere', '1d12', 'perforante', 'for', 'm1', 'Portata, Speciale'], ['Martello da Guerra', '1d8', 'contundente', 'for', 'm1', 'Versatile (1d10)'], ['Martello Leggero', '1d4', 'contundente', 'for', 'm1', 'Leggera, Lancio (6/18)'], ['Mazza', '1d6', 'contundente', 'for', 'm1', ''], ['Mazzafrusto', '1d8', 'contundente', 'for', 'm1', ''], ['Morning Star', '1d8', 'perforante', 'for', 'm1', ''], ['Piccone da Guerra', '1d8', 'perforante', 'for', 'm1', ''], ['Pugnale', '1d4', 'perforante', 'f', 'm1', 'Accurata, Leggera, Lancio (6/18)'], ['Randello', '1d4', 'contundente', 'for', 'm1', 'Leggera'], ['Scimitarra', '1d6', 'tagliente', 'f', 'm1', 'Accurata, Leggera'], ['Spada Corta', '1d6', 'perforante', 'f', 'm1', 'Accurata, Leggera'], ['Spada Lunga', '1d8', 'tagliente', 'for', 'm1', 'Versatile (1d10)'], ['Stocco', '1d8', 'perforante', 'f', 'm1', 'Accurata'], ['Tridente', '1d6', 'perforante', 'for', 'm1', 'Lancio (6/18), Versatile (1d8)'], ['Alabarda', '1d10', 'tagliente', 'for', 'm2', 'Due Mani, Pesante, Portata'], ['Ascia Bipenne', '1d12', 'tagliente', 'for', 'm2', 'Due Mani, Pesante'], ['Falcione', '1d10', 'tagliente', 'for', 'm2', 'Due Mani, Pesante, Portata'], ['Maglio', '2d6', 'contundente', 'for', 'm2', 'Due Mani, Pesante'], ['Picca', '1d10', 'perforante', 'for', 'm2', 'Due Mani, Pesante, Portata'], ['Randello Pesante', '1d8', 'contundente', 'for', 'm2', 'Due Mani'], ['Spadone', '2d6', 'tagliente', 'for', 'm2', 'Due Mani, Pesante'], ['Arco Corto', '1d6', 'perforante', 'des', 'dist', 'Due Mani, Munizioni (24/96)'], ['Arco Lungo', '1d8', 'perforante', 'des', 'dist', 'Due Mani, Pesante, Munizioni (45/180)'], ['Balestra a Mano', '1d6', 'perforante', 'des', 'dist', 'Leggera, Munizioni (9/36), Ricarica'], ['Balestra Leggera', '1d8', 'perforante', 'des', 'dist', 'Due Mani, Munizioni (24/96), Ricarica'], ['Balestra Pesante', '1d10', 'perforante', 'des', 'dist', 'Due Mani, Pesante, Munizioni (30/120), Ricarica'], ['Cerbottana', '1', 'perforante', 'des', 'dist', 'Munizioni (7,5/30), Ricarica'], ['Dardo', '1d4', 'perforante', 'des', 'dist', 'Accurata, Lancio (6/18)'], ['Fionda', '1d4', 'contundente', 'des', 'dist', 'Munizioni (9/36)']];
+
+const ARMORS=[
+['Imbottita','Leggera','5 mo',11,null,1,0,4],['Cuoio','Leggera','10 mo',11,null,0,0,5],['Cuoio Borchiato','Leggera','45 mo',12,null,0,0,6.5],
+['Pelle','Media','10 mo',12,2,0,0,6],['Giaco di Maglia','Media','50 mo',13,2,0,0,10],['Corazza di Scaglie','Media','50 mo',14,2,1,0,22.5],['Corazza di Piastre','Media','400 mo',14,2,0,0,10],['Mezza Armatura','Media','750 mo',15,2,1,0,20],
+['Corazza ad Anelli','Pesante','30 mo',14,0,1,0,20],['Cotta di Maglia','Pesante','75 mo',16,0,1,13,27.5],['Corazza a Strisce','Pesante','200 mo',17,0,1,15,30],['Armatura Completa','Pesante','1.500 mo',18,0,1,15,32.5]];
+const WCW={'Ascia':['5 mo',1],'Bastone Ferrato':['2 ma',2],'Falcetto':['1 mo',1],'Giavellotto':['5 ma',1],'Lancia':['1 mo',1.5],'Martello Leggero':['2 mo',1],'Mazza':['5 mo',2],'Pugnale':['2 mo',0.5],'Randello':['1 ma',1],'Randello Pesante':['2 ma',5],'Arco Corto':['25 mo',1],'Balestra Leggera':['25 mo',2.5],'Dardo':['5 mr',0.125],'Fionda':['1 ma',0],
+'Alabarda':['20 mo',3],'Ascia Bipenne':['30 mo',3.5],'Ascia da Battaglia':['10 mo',2],'Falcione':['20 mo',3],'Frusta':['2 mo',1.5],'Lancia da Cavaliere':['10 mo',3],'Maglio':['10 mo',5],'Martello da Guerra':['15 mo',1],'Mazzafrusto':['10 mo',1],'Morning Star':['15 mo',2],'Picca':['5 mo',9],'Piccone da Guerra':['5 mo',1],'Scimitarra':['25 mo',1.5],'Spada Corta':['10 mo',1],'Spada Lunga':['15 mo',1.5],'Spadone':['50 mo',3],'Stocco':['25 mo',1],'Tridente':['5 mo',2],
+'Arco Lungo':['50 mo',1],'Balestra a Mano':['75 mo',1.5],'Balestra Pesante':['50 mo',9],'Cerbottana':['10 mo',0.5]};
+const GEARC=('Abaco|2 mo|1;Abito, Comune|5 ma|1.5;Abito, Costume|5 mo|2;Abito da Viaggiatore|2 mo|2;Abito, Pregiato|15 mo|3;Acciarino e Pietra Focaia|5 ma|0.5;Acido (fiala)|25 mo|0.5;Acqua Santa (ampolla)|25 mo|0.5;Ampolla o Boccale|2 mr|0.5;Anello con Sigillo|5 mo|0;Antitossina (fiala)|50 mo|0;Ariete Portatile|4 mo|17.5;Asta (3 metri)|5 mr|3.5;Attrezzi da Scalatore|25 mo|6;Barile|2 mo|35;Bilancia da Mercante|5 mo|1.5;Borsa|5 ma|0.5;Borsa del Guaritore|5 mo|1.5;Borsa per Componenti|25 mo|1;Bottiglia di Vetro|2 mo|1;Brocca o Caraffa|2 mr|2;Campanella|1 mo|0;Candela|1 mr|0;Canestro|4 ma|1;Canna da Pesca|1 mo|2;Cannocchiale|1.000 mo|0.5;Carrucola e Paranco|1 mo|2.5;Carta (un foglio)|2 ma|0;Catena (3 metri)|5 mo|5;Cera per Sigillo|5 ma|0;Chiodo da Rocciatore|5 mr|0.125;Clessidra|25 mo|0.5;Coperta|5 ma|1.5;Corda di Canapa (15 m)|1 mo|5;Corda di Seta (15 m)|10 mo|2.5;Cote per Affilare|1 mr|0.5;Custodia per Mappe o Pergamene|1 mo|0.5;Custodia per Quadrelli da Balestra|1 mo|0.5;Faretra|1 mo|0.5;Fiala|1 mo|0;Fischietto da Richiamo|5 mr|0;'
++'Bacchetta (focus arcano)|10 mo|0.5;Bastone (focus arcano)|5 mo|2;Cristallo (focus arcano)|10 mo|0.5;Globo (focus arcano)|20 mo|1.5;Verga (focus arcano)|10 mo|1;Bacchetta in Legno di Tasso (focus druidico)|10 mo|0.5;Bastone di Legno (focus druidico)|5 mo|2;Rametto di Vischio (focus druidico)|1 mo|0;Totem (focus druidico)|1 mo|0;'
++'Forziere|5 mo|12.5;Fuoco dell’Alchimista (ampolla)|50 mo|0.5;Gavetta|2 ma|0.5;Gessetto (1 pezzo)|1 mr|0;Giaciglio|1 mo|3.5;Inchiostro (boccetta da 30 g)|10 mo|0;Lampada|5 ma|0.5;Lanterna a Lente Sporgente|10 mo|1;Lanterna Schermabile|5 mo|1;Lente d’Ingrandimento|100 mo|0;Libro|25 mo|2.5;Libro degli Incantesimi|50 mo|1.5;Manette|2 mo|3;Martello|1 mo|1.5;Martello da Demolizione|2 mo|5;Olio (ampolla)|1 ma|0.5;Otre|2 ma|2.5;Pennino|2 mr|0;Pergamena (un foglio)|1 ma|0;Piccone da Minatore|2 mo|5;Piede di Porco|2 mo|2.5;Pozione di Guarigione|50 mo|0.25;Profumo (fiala)|5 mo|0;Rampino|2 mo|2;Razioni (1 giorno)|5 ma|1;Sacco|1 mr|0.25;Sapone|2 mr|0;Scala a Pioli (3 metri)|1 ma|12.5;Secchio|5 mr|1;Serratura|10 mo|0.5;Sfere Metalliche (sacchetto da 1.000)|1 mo|1;Amuleto (simbolo sacro)|5 mo|0.5;Emblema (simbolo sacro)|5 mo|0;Reliquiario (simbolo sacro)|5 mo|1;Specchio Piccolo di Metallo|5 mo|0.25;Spuntoni, Ferro (10)|1 mo|2.5;Tagliola|5 mo|12.5;Tenda per Due Persone|2 mo|10;Torcia|1 mr|0.5;Triboli (sacchetto da 20)|1 mo|1;Vanga o Badile|2 mo|2.5;Vaso di Ferro|2 mo|5;Veleno Base (fiala)|100 mo|0;Veste|1 mo|2;Zaino|2 mo|2.5;'
++'Aghi da Cerbottana (50)|1 mo|0.5;Frecce (20)|1 mo|0.5;Proiettili da Fionda (20)|4 mr|0.75;Quadrelli da Balestra (20)|1 mo|0.75').split(';').map(x=>{const a=x.split('|');return[a[0],a[1],+a[2]];});
+const TOOLC=[['Arnesi da Falsario','15 mo',2.5],['Arnesi da Scasso','25 mo',0.5],['Borsa da Erborista','5 mo',1.5],['Dadi (gioco)','1 ma',0],['Mazzo di Carte (gioco)','5 ma',0],['Scacchi dei Draghi (gioco)','1 mo',0.25],['Tre Draghi al Buio (gioco)','1 mo',0],['Sostanze da Avvelenatore','50 mo',1],['Scorte da Alchimista','50 mo',4],['Scorte da Calligrafo','10 mo',2.5],['Scorte da Mescitore','20 mo',4.5],['Strumenti da Calzolaio','5 mo',2.5],['Strumenti da Cartografo','15 mo',3],['Strumenti da Conciatore','5 mo',2.5],['Strumenti da Costruttore','10 mo',4],['Strumenti da Fabbro','20 mo',4],['Strumenti da Falegname','8 mo',3],['Strumenti da Gioielliere','25 mo',1],['Strumenti da Intagliatore','1 mo',2.5],['Strumenti da Inventore','50 mo',5],['Strumenti da Pittore','10 mo',2.5],['Strumenti da Soffiatore','30 mo',2.5],['Strumenti da Tessitore','1 mo',2.5],['Strumenti da Vasaio','10 mo',1.5],['Utensili da Cuoco','1 mo',4],['Strumenti da Navigatore','25 mo',1],['Ciaramella','2 mo',0.5],['Cornamusa','30 mo',3],['Corno','3 mo',1],['Dulcimer','25 mo',5],['Flauto','2 mo',0.5],['Flauto di Pan','12 mo',1],['Lira','30 mo',1],['Liuto','35 mo',1],['Tamburo','6 mo',1.5],['Viola','30 mo',0.5],['Trucchi per il Camuffamento','25 mo',1.5]];
+function equipped(c){return S.items.filter(i=>i.eq&&i.cat===c);}
+function acInfo(){
+  const ar=equipped('armatura')[0],sh=equipped('scudo')[0];
+  if(!ar&&!sh)return null;
+  const dx=abilMod('des'),parts=[];let base;
+  if(ar){base=ar.ac+(ar.cap===0?0:Math.min(dx,ar.cap==null?99:ar.cap));parts.push(ar.name);}
+  else{
+    base=10+dx;const cls=S.classes.map(c=>c.n);
+    if(cls.includes('Barbaro'))base=Math.max(base,10+dx+abilMod('cos'));
+    if(cls.includes('Monaco')&&!sh)base=Math.max(base,10+dx+abilMod('sag'));
+    if(S.classes.some(c=>c.n==='Stregone'&&c.sub==='Discendenza Draconica'))base=Math.max(base,13+dx);
+    parts.push('senza armatura');
+  }
+  if(sh){base+=sh.ac||2;parts.push(sh.name);}
+  base+=+S.acBonus||0;
+  return{ac:base,parts};
+}
+const acNow=()=>{const a=acInfo();return a?a.ac:S.ac;};
+const stealthDis=()=>equipped('armatura').some(a=>a.st);
+const strShort=()=>equipped('armatura').find(a=>a.str&&S.abilities.for<a.str);
 const GEAR=[['Zaino',2.5],['Sacco a pelo',3.5],['Corda di canapa (15 m)',5],['Torcia',0.5],['Razione di viaggio',1],['Otre',2.5],['Acciarino',0],['Lanterna schermabile',1],['Pozione di guarigione',0.25],['Libro degli incantesimi',1.5],['Simbolo sacro',0.5],['Arnesi da scasso',0.5]];
 const CL={M:'Mago',S:'Stregone',W:'Warlock',B:'Bardo',C:'Chierico',D:'Druido',P:'Paladino',R:'Ranger'};
 const SPELLS=[['Fiotto Acido',0,'MS','18 m · 1d6 acido'],['Luce',0,'MBCS','Tocco · 1 ora'],['Mano Magica',0,'MSWB','9 m · 1 minuto'],['Prestidigitazione',0,'MSWB',''],['Messaggio',0,'MSB',''],['Raggio di Gelo',0,'MS','18 m · 1d8 freddo'],['Illusione Minore',0,'MSWB',''],['Tocco Gelido',0,'MSW','36 m · 1d8 necrotico'],['Stretta Folgorante',0,'MS','Tocco · 1d8 fulmine'],['Deflagrazione Occulta',0,'W','36 m · 1d10 forza'],['Luci Danzanti',0,'MSB',''],['Riparare',0,'BCDMS',''],['Spruzzo Velenoso',0,'MSWD','3 m · 1d12 veleno'],
@@ -956,7 +989,7 @@ const saveB=k=>abilMod(k)+(S.saves[k]?pb():0);
 const skillB=i=>{const[n,k]=SKILLS[i];return abilMod(k)+(S.skills[n]||0)*pb();};
 const skillI=n=>SKILLS.findIndex(s=>s[0]===n);
 const initTot=()=>abilMod('des')+S.initB+(S.feats.includes('Allerta')?5:0);
-const spd=()=>S.speed+(S.feats.includes('Mobile')?3:0);
+const spd=()=>S.speed+(S.feats.includes('Mobile')?3:0)-(strShort()?3:0);
 const prepMax=()=>{const cc=castCls(),k=(CLASSES[cc.n]||{}).spell,m=k?abilMod(k):0;if(['Mago','Chierico','Druido'].includes(cc.n))return Math.max(1,m+cc.l);if(cc.n==='Paladino')return Math.max(1,m+Math.floor(cc.l/2));return null;};
 const barbL=()=>S.classes.filter(c=>c.n==='Barbaro').reduce((t,c)=>t+c.l,0);
 const rageMax=l=>l>=20?Infinity:l>=17?6:l>=12?5:l>=6?4:l>=3?3:2;
@@ -1138,7 +1171,7 @@ function viewScheda(){
   ${S.hp===0?deathCard():''}
   ${active.length?`<div class="chips" aria-label="Condizioni attive">${active.map(c=>`<button class="chip" aria-pressed="true" data-act="goto-azioni">${esc(c)}</button>`).join('')}</div>`:''}
   <div class="tiles">
-    <button class="tile tap" data-act="edit-stats"><span class="v">${S.ac}</span><span class="l">Classe Armatura</span></button>
+    <button class="tile tap" data-act="edit-stats"><span class="v">${acNow()}</span><span class="l">Classe Armatura</span></button>
     <button class="tile tap" data-act="roll-init"><span class="v">${sgn(initTot())}</span><span class="l">Iniziativa</span></button>
     <button class="tile tap" data-act="edit-stats"><span class="v">${fmt(spd())}</span><span class="l">Velocità (m)</span></button>
     <div class="tile"><span class="v">${sgn(pb())}</span><span class="l">Competenza</span></div>
@@ -1194,7 +1227,7 @@ function viewAbilita(){
   <div class="skills">${SKILLS.map(([n,k],i)=>`
     <div class="skill" role="button" tabindex="0" data-act="roll-skill" data-i="${i}">
       ${dotBtn('cycle-skill',`data-i="${i}"`,S.skills[n]||0,'Competenza in '+n)}
-      <div class="n"><span>${n}</span><small>${AB[k][2]}</small></div><span class="b">${sgn(skillB(i))}</span></div>`).join('')}</div>
+      <div class="n"><span>${n}</span><small>${AB[k][2]}${n==='Furtività'&&stealthDis()?' · svantaggio':''}</small></div><span class="b">${sgn(skillB(i))}</span></div>`).join('')}</div>
   <div class="row-h" style="margin-top:8px"><h2 class="h" style="margin:0 4px">Tratti e capacità</h2><button class="btn text sm" data-act="add-feat">${ic('add',18)}Tratto</button></div>
   ${secTratti()}
   <div class="row-h" style="margin-top:8px"><h2 class="h" style="margin:0 4px">Talenti</h2><button class="btn text sm" data-act="add-talent">${ic('add',18)}Talento</button></div>
@@ -1251,15 +1284,30 @@ function viewMagie(){
     </div>`).join('')}</div>`).join(''):`<div class="empty">Nessun incantesimo. Aggiungine uno con il pulsante.</div>`}`;
 }
 
+function itemSub(it){
+  const bits=[];
+  if(it.cat==='armatura')bits.push('CA '+it.ac+(it.cap===0?'':it.tipo==='Leggera'||it.cap==null&&it.tipo!=='Pesante'?' + Des':' + Des (max '+it.cap+')'));
+  if(it.cat==='scudo')bits.push('CA +2');
+  if(it.st)bits.push('svant. Furtività');
+  if(it.str)bits.push('For '+it.str);
+  bits.push(it.w?fmt(it.w)+' kg ciascuno':'senza peso');
+  return esc(bits.join(' · '));
+}
+function acCard(){
+  const a=acInfo();
+  return `<section class="card"><div class="row-h"><div><h2 class="h" style="border:0;margin:0;padding:0">Classe Armatura</h2><span class="sub">${a?esc(a.parts.join(' + ')):'Valore impostato a mano. Indossa un’armatura o uno scudo per calcolarla.'}</span></div><b style="font-size:28px;font-family:var(--serif)">${acNow()}</b></div>${strShort()?`<p class="sub" style="margin-top:6px">Forza ${strShort().str} richiesta: velocità −3 m.</p>`:''}${stealthDis()?`<p class="sub" style="margin-top:6px">Svantaggio alle prove di Furtività.</p>`:''}</section>`;
+}
 function totalW(){return S.items.reduce((t,i)=>t+(+i.w||0)*(+i.qty||0),0);}
 function viewZaino(){
   const seg=`<div class="seg" role="group" aria-label="Sezione zaino">${[['oggetti','Oggetti'],['storia','Storia']].map(([k,n])=>`<button data-act="ztab" data-z="${k}" aria-pressed="${zTab===k}">${n}</button>`).join('')}</div>`;
   if(zTab==='oggetti')return seg+`
     <section class="card"><h2 class="h" style="margin-bottom:12px">Monete</h2>
       <div class="coins">${[['mr','MR'],['ma','MA'],['me','ME'],['mo','MO'],['mp','MP']].map(([k,l])=>`<label class="coin"><input type="number" inputmode="numeric" min="0" data-bind="coins.${k}" data-num value="${S.coins[k]}" aria-label="Monete ${l}"><span>${l}</span></label>`).join('')}</div></section>
+    ${acCard()}
     <div class="row-h" style="padding:0 4px"><span class="sub">Peso trasportato</span><b id="wtot">${fmt(totalW())} / ${fmt(S.abilities.for*7.5)} kg</b></div>
     ${S.items.length?`<div class="list">${S.items.map((it,i)=>`<div class="item">
-      <button class="row-main" data-act="edit-item" data-i="${i}"><b>${esc(it.name)}</b><small>${it.w?fmt(it.w)+' kg ciascuno':'senza peso'}</small></button>
+      <button class="row-main" data-act="edit-item" data-i="${i}"><b>${esc(it.name)}</b><small>${itemSub(it)}</small></button>
+      ${it.cat?`<button class="chip" data-act="eq-tog" data-i="${i}" aria-pressed="${!!it.eq}">${it.eq?ic('check',16):''}${it.cat==='arma'?'Impugnata':'Indossato'}</button>`:''}
       <div class="qty"><button data-act="qty" data-i="${i}" data-d="-1" aria-label="Diminuisci quantità">${ic('minus',20)}</button><b>${it.qty}</b><button data-act="qty" data-i="${i}" data-d="1" aria-label="Aumenta quantità">${ic('add',20)}</button></div></div>`).join('')}</div>`:`<div class="empty">Zaino vuoto.</div>`}`;
   const st=[['tratti','Tratti caratteriali'],['ideali','Ideali'],['legami','Legami'],['difetti','Difetti'],['note','Note']];
   return seg+`<div class="fields">${st.map(([k,l])=>`<label class="tf"><span>${l}</span><textarea data-bind="story.${k}" rows="${k==='note'?5:3}">${esc(S.story[k])}</textarea></label>`).join('')}</div>`;
@@ -1351,10 +1399,10 @@ function editProfile(){
 function editStats(){
   openSheet({title:'Punti ferita e statistiche',body:`<div class="fields">
     <div class="row3">${tf('s-hp','PF attuali',S.hp,'number')}${tf('s-max','PF massimi',S.hpMax,'number','min="1"')}${tf('s-tmp','PF temporanei',S.tmp,'number','min="0"')}</div>
-    <div class="row3">${tf('s-ac','Classe Armatura',S.ac,'number')}${tf('s-sp','Velocità (m)',S.speed,'number')}${tf('s-in','Bonus iniziativa extra',S.initB,'number')}</div></div>`,
+    <div class="row3">${tf('s-ac',acInfo()?'Bonus alla CA':'Classe Armatura',acInfo()?(S.acBonus||0):S.ac,'number')}${tf('s-sp','Velocità (m)',S.speed,'number')}${tf('s-in','Bonus iniziativa extra',S.initB,'number')}</div></div>`,
     save(){
       S.hpMax=Math.round(numv('s-max',S.hpMax,1));S.hp=clamp(Math.round(numv('s-hp',S.hp)),0,S.hpMax);S.tmp=Math.round(numv('s-tmp',0,0));
-      S.ac=Math.round(numv('s-ac',S.ac));S.speed=numv('s-sp',S.speed,0);S.initB=Math.round(numv('s-in',0));
+      if(acInfo())S.acBonus=Math.round(numv('s-ac',0));else S.ac=Math.round(numv('s-ac',S.ac));S.speed=numv('s-sp',S.speed,0);S.initB=Math.round(numv('s-in',0));
       if(S.hp>0)S.death={s:0,f:0};
       persist();render();
     }});
@@ -1378,6 +1426,7 @@ function editAtk(i){
     <p class="sub">Puoi sommare più dadi, ad esempio 1d8+1d6+2.</p></div>`,
     save(){
       const o={name:val('a-name').trim()||'Attacco',ab:val('a-ab'),prof:chk('a-prof'),bonus:Math.round(numv('a-bonus',0)),dmg:val('a-dmg').trim(),type:val('a-type').trim()};
+      if(i>=0&&S.attacks[i].iid)o.iid=S.attacks[i].iid;
       if(i>=0)S.attacks[i]=o;else S.attacks.push(o);persist();render();},
     del:i>=0?()=>{S.attacks.splice(i,1);persist();render();}:null});
 }
@@ -1411,8 +1460,8 @@ function editSpellAb(){
 function editItem(i){
   const it=i>=0?S.items[i]:{name:'',qty:1,w:0};
   openSheet({title:i>=0?'Modifica oggetto':'Nuovo oggetto',body:`<div class="fields">${tf('i-name','Nome',it.name)}<div class="row2">${tf('i-qty','Quantità',it.qty,'number','min="0"')}${tf('i-w','Peso unitario (kg)',String(it.w).replace('.',','),'text','inputmode="decimal"')}</div></div>`,
-    save(){const o={name:val('i-name').trim()||'Oggetto',qty:Math.round(numv('i-qty',1,0)),w:numv('i-w',0,0)};if(i>=0)S.items[i]=o;else S.items.push(o);persist();render();},
-    del:i>=0?()=>{S.items.splice(i,1);persist();render();}:null});
+    save(){const o={...(i>=0?S.items[i]:{}),name:val('i-name').trim()||'Oggetto',qty:Math.round(numv('i-qty',1,0)),w:numv('i-w',0,0)};if(i>=0)S.items[i]=o;else S.items.push(o);persist();render();},
+    del:i>=0?()=>{const it=S.items[i];if(it&&it.id)S.attacks=S.attacks.filter(a=>a.iid!==it.id);S.items.splice(i,1);persist();render();}:null});
 }
 function editFeat(i){
   const f=i>=0?S.features[i]:{name:'',text:''};
@@ -1453,14 +1502,17 @@ function spellAtks(){
   });
   return out;
 }
+function weaponAtk(w){
+  const ab=w[3]==='f'?(S.abilities.des>=S.abilities.for?'des':'for'):w[3],m=abilMod(ab);
+  return{name:w[0],ab,prof:true,bonus:0,dmg:w[1]+(m?(m>0?'+':'-')+Math.abs(m):''),type:w[2]};
+}
 function pickAtk(){
   const wl=WEAP.map(w=>({n:w[0],s:`${w[1]} ${w[2]}${w[5]?' · '+w[5]:''}`,w,cat:w[4]}));
   const all=[...wl,...spellAtks()];
   PK_ATK=all;
   pick('Aggiungi attacco',all,e=>{
     if(e.sp){const ab=S.spellAb||(CLASSES[castCls().n]||{}).spell||'';S.attacks.push({name:e.n,ab,prof:true,bonus:0,dmg:e.dm,type:e.ty});return;}
-    const w=e.w,ab=w[3]==='f'?(S.abilities.des>=S.abilities.for?'des':'for'):w[3],m=abilMod(ab);
-    S.attacks.push({name:w[0],ab,prof:true,bonus:0,dmg:w[1]+(m?(m>0?'+':'-')+Math.abs(m):''),type:w[2]});
+    S.attacks.push(weaponAtk(e.w));
   },()=>editAtk(-1),`<div class="chips" id="atk-cats">${ATKCATS.map(([k,n])=>`<button class="chip" data-act="atk-cat" data-c="${k}" aria-pressed="${k==='t'}">${n}</button>`).join('')}</div>`);
 }
 let PK_ATK=[];
@@ -1471,7 +1523,32 @@ function pickSpell(){
   pick('Aggiungi incantesimo',mine,e=>S.spells.push({name:e.sp[0],level:e.sp[1],note:e.sp[3]||'',conc:!!e.sp[4],prep:true}),()=>editSpell(-1),L?`<div class="chips"><button class="chip" aria-pressed="true" data-act="sp-all">Solo ${castCls().n}</button></div>`:'');
   PK.all=all;PK.mine=mine;
 }
-function pickItem(){pick('Aggiungi oggetto',GEAR.map(g=>({n:g[0],s:g[1]?fmt(g[1])+' kg':'senza peso',g})),e=>S.items.push({name:e.g[0],qty:1,w:e.g[1]}),()=>editItem(-1));}
+const ITEMCATS=[['t','Tutti'],['arm','Armature e scudi'],['arma','Armi'],['equip','Equipaggiamento'],['str','Strumenti']];
+let PK_IT=[];
+function itemList(){
+  const L=[];
+  ARMORS.forEach(a=>L.push({n:a[0],s:`Armatura ${a[1].toLowerCase()} · CA ${a[3]}${a[1]==='Leggera'?' + Des':a[4]?' + Des (max '+a[4]+')':''}${a[6]?' · For '+a[6]:''}${a[5]?' · svantaggio Furtività':''} · ${a[7]} kg`,cat:'arm',it:{name:a[0],qty:1,w:a[7],cat:'armatura',ac:a[3],cap:a[4],st:a[5],str:a[6],cost:a[2],tipo:a[1]}}));
+  L.push({n:'Scudo',s:'CA +2 · 3 kg',cat:'arm',it:{name:'Scudo',qty:1,w:3,cat:'scudo',ac:2,cost:'10 mo'}});
+  WEAP.forEach(w=>{if(!WCW[w[0]])return;const c=WCW[w[0]];L.push({n:w[0],s:`${w[1]} ${w[2]}${w[5]?' · '+w[5]:''} · ${c[0]}`,cat:'arma',it:{name:w[0],qty:1,w:c[1],cat:'arma',cost:c[0]}});});
+  GEARC.forEach(g=>L.push({n:g[0],s:`${g[1]} · ${g[2]?fmt(g[2])+' kg':'senza peso'}`,cat:'equip',it:{name:g[0],qty:1,w:g[2],cost:g[1]}}));
+  TOOLC.forEach(g=>L.push({n:g[0],s:`${g[1]} · ${g[2]?fmt(g[2])+' kg':'senza peso'}`,cat:'str',it:{name:g[0],qty:1,w:g[2],cost:g[1]}}));
+  return L;
+}
+function pickItem(){
+  PK_IT=itemList();
+  pick('Aggiungi oggetto',PK_IT,e=>{const ex=S.items.find(x=>x.name===e.it.name&&!x.eq&&!x.cat===!e.it.cat);if(ex)ex.qty++;else S.items.push({...e.it});},()=>editItem(-1),`<div class="chips" id="it-cats">${ITEMCATS.map(([k,n])=>`<button class="chip" data-act="it-cat" data-c="${k}" aria-pressed="${k==='t'}">${n}</button>`).join('')}</div>`);
+}
+function toggleEq(i){
+  const it=S.items[i];if(!it)return;it.id=it.id||uid();
+  if(it.cat==='armatura'||it.cat==='scudo'){
+    if(!it.eq)S.items.forEach(x=>{if(x.cat===it.cat)x.eq=false;});
+    it.eq=!it.eq;
+  }else if(it.cat==='arma'){
+    if(it.eq){S.attacks=S.attacks.filter(a=>a.iid!==it.id);it.eq=false;}
+    else{const w=WEAP.find(x=>x[0]===it.name);S.attacks.push({...(w?weaponAtk(w):{name:it.name,ab:'for',prof:true,bonus:0,dmg:'1d4',type:''}),iid:it.id});it.eq=true;}
+  }
+  persist();render();
+}
 function pickFeat(){pick('Aggiungi talento',FEATS.filter(f=>!S.feats.includes(f[0])).map(f=>({n:f[0],s:(FASI[f[0]]?'+1 caratteristica · ':'')+(f[1]?f[1]+' · ':'')+f[2],f,d:f[2],m:(f[1]?'Prerequisito: '+f[1]:'')+(FASI[f[0]]?(f[1]?' · ':'')+'+1 a una caratteristica':'')})),e=>addFeat(e.f[0]));}
 function addFeat(n){
   S.feats.push(n);const o=FASI[n];
@@ -1853,6 +1930,8 @@ document.addEventListener('click',e=>{
     case 'del-talent':delFeat(i);persist();render();break;
     case 'pick':PK.onPick(PK.list[i]);persist();closeSheet();render();break;
     case 'pick-custom':{const c=PK.custom;closeSheetInstant();c();break;}
+    case 'it-cat':{PK.list=D.c==='t'?PK_IT:PK_IT.filter(e=>e.cat===D.c);root.querySelectorAll('#it-cats .chip').forEach(c=>c.setAttribute('aria-pressed',String(c.dataset.c===D.c)));PK.open=-1;drawPick();break;}
+    case 'eq-tog':toggleEq(i);break;
     case 'atk-cat':{PK.list=D.c==='t'?PK_ATK:PK_ATK.filter(e=>e.cat===D.c);root.querySelectorAll('#atk-cats .chip').forEach(c=>c.setAttribute('aria-pressed',String(c.dataset.c===D.c)));PK.open=-1;drawPick();break;}
     case 'sp-all':{const on=el.getAttribute('aria-pressed')==='true';el.setAttribute('aria-pressed',String(!on));PK.list=on?PK.all:PK.mine;drawPick();break;}
     case 'edit-item':editItem(i);break;
