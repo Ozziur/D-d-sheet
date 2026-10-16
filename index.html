@@ -995,6 +995,15 @@ const barbL=()=>S.classes.filter(c=>c.n==='Barbaro').reduce((t,c)=>t+c.l,0);
 const rageMax=l=>l>=20?Infinity:l>=17?6:l>=12?5:l>=6?4:l>=3?3:2;
 const rageDmg=l=>l>=16?4:l>=9?3:2;
 const rageB=a=>S.raging&&barbL()&&a&&a.ab==='for'?rageDmg(barbL()):0;
+function dmgWhy(a){
+  const c=(String(a.dmg||'').replace(/\s+/g,'').replace(/−/g,'-').match(/[+-]\d+(?![d\d])/g)||[]).reduce((t,x)=>t+ +x,0);
+  const m=a.ab&&AB[a.ab]?abilMod(a.ab):0,parts=[];
+  if(a.ab&&AB[a.ab]&&m!==0&&(m>0?c>=m:c<=m))parts.push(AB[a.ab][1]+' '+sgn(m));
+  const rest=c-(parts.length?m:0);
+  if(rest)parts.push('bonus '+sgn(rest));
+  if(rageB(a))parts.push('Ira '+sgn(rageB(a)));
+  return parts.join(' · ');
+}
 const dmgF=a=>(a.dmg||'')+(rageB(a)?'+'+rageB(a):'');
 const lvOf=n=>S.classes.filter(c=>c.n===n).reduce((t,c)=>t+c.l,0);
 const subOf=n=>(S.classes.find(c=>c.n===n)||{}).sub||'';
@@ -1429,11 +1438,19 @@ function editStats(){
       persist();render();
     }});
 }
+function abilBreak(k){
+  const rb=(!S.noRace&&RACE[S.race]&&RACE[S.race].a)||{},parts=[['Base',S.base[k]]];
+  if(rb[k])parts.push(['razza ('+S.race+')',rb[k]]);
+  if(S.inc[k])parts.push(['aumenti di livello',S.inc[k]]);
+  S.feats.forEach(n=>{if(S.featAsi[n]===k)parts.push(['talento '+n,1]);});
+  const raw=parts.reduce((t,x)=>t+x[1],0);
+  return parts.map((x,i)=>i===0?x[0]+' '+x[1]:x[0]+' '+sgn(x[1])).join(' · ')+' = '+raw+(raw>20?' (il massimo è 20)':'')+`. Modificatore: (${S.abilities[k]} − 10) ÷ 2, arrotondato per difetto = ${sgn(abilMod(k))}.`;
+}
 function editAbil(k){
   const [,n]=AB[k];
   openSheet({title:n,body:`<div class="big-step"><button data-act="step" data-for="abil-in" data-d="-1" aria-label="Diminuisci">${ic('minus')}</button>
     <input id="abil-in" type="number" inputmode="numeric" min="1" max="30" value="${S.abilities[k]}" aria-label="Punteggio di ${n}"><button data-act="step" data-for="abil-in" data-d="1" aria-label="Aumenta">${ic('add')}</button></div>
-    <div class="mod-big" id="abil-mod">Modificatore ${sgn(abilMod(k))}</div><p class="sub" style="text-align:center">Totale con bonus di razza, talenti e aumenti di livello (base ${S.base[k]}).</p>`,
+    <div class="mod-big" id="abil-mod">Modificatore ${sgn(abilMod(k))}</div><p class="sub" style="text-align:center">${esc(abilBreak(k))}</p>`,
     save(){const v=Math.round(numv('abil-in',S.abilities[k],1,30));S.base[k]=clamp(S.base[k]+v-S.abilities[k],1,30);recalc();persist();render();}});
 }
 
@@ -1930,7 +1947,8 @@ document.addEventListener('click',e=>{
     case 'roll-atk':{const a=S.attacks[i];rollD20(a.name+': colpire',atkBonus(a),atkParts(a));break;}
     case 'roll-dmg':{const a=S.attacks[i],r=rollFormula(dmgF(a),crit);
       if(!r){toast('Formula del danno non valida. Esempio: 1d8+3');break;}
-      showRoll({label:`${a.name}: danno${a.type?' '+a.type:''}`,total:r.total,detail:r.detail,tag:crit?'Critico':''});break;}
+      const why=dmgWhy(a);
+      showRoll({label:`${a.name}: danno${a.type?' '+a.type:''}`,total:r.total,detail:r.detail+(why?' ('+why+')':''),tag:crit?'Critico':''});break;}
     case 'tog-crit':crit=!crit;render();break;
     case 'cond':{const c=D.c,k=S.conds.indexOf(c);if(k>=0)S.conds.splice(k,1);else S.conds.push(c);persist();render();break;}
     case 'exh':S.exh=clamp(S.exh+ +D.d,0,6);persist();render();break;
