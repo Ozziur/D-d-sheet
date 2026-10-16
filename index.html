@@ -1296,8 +1296,30 @@ function viewAbilita(){
   ${profSection()}`;
 }
 
+/* ───────── Economia del turno ───────── */
+function atkPerAction(){
+  let n=1;const g=lvOf('Guerriero');if(g>=20)n=4;else if(g>=11)n=Math.max(n,3);else if(g>=5)n=Math.max(n,2);
+  if(['Barbaro','Monaco','Paladino','Ranger'].some(c=>lvOf(c)>=5))n=Math.max(n,2);
+  if(lvOf('Bardo')>=6&&subOf('Bardo')==='Collegio del Valore')n=Math.max(n,2);
+  if(lvOf('Warlock')>=5&&typeof chosen==='function'&&chosen('suppl',SUPPL).includes('assetata'))n=Math.max(n,2);
+  return n;
+}
+function turnCard(){
+  const T=S.turn=S.turn||{},v=spd()*(T.dash?2:1),used=Math.min(T.m||0,v),na=atkPerAction();
+  const chip=(k,n)=>`<button class="chip" data-act="turn-t" data-k="${k}" aria-pressed="${!!T[k]}" style="${T[k]?'text-decoration:line-through':''}">${T[k]?ic('check',16):''}${n}</button>`;
+  return `<section class="card sblock" aria-label="Il tuo turno">
+    <div class="row-h"><h2 class="h">Il tuo turno</h2><button class="btn sm" data-act="turn-new">Nuovo turno</button></div>
+    <div class="chips">${chip('a','Azione')}${chip('b','Azione bonus')}${chip('r','Reazione')}${chip('o','Interazione oggetto')}</div>
+    ${na>1?`<div class="row-h" style="min-height:40px"><span>Attacchi dell’azione di Attacco <span class="sub">(Attacco Extra)</span></span><div class="pips" style="flex:none">${Array.from({length:na},(_,j)=>`<button class="pip${j<(T.at||0)?' on':''}" data-act="turn-at" data-j="${j}" aria-label="Attacco ${j+1}"></button>`).join('')}</div></div>`:''}
+    <div class="row-h" style="min-height:44px"><div><b>Movimento</b><br><span class="sub">${fmt(used)} di ${fmt(v)} m usati</span></div>
+      <div style="display:flex;align-items:center;gap:6px"><button class="chip" data-act="turn-dash" aria-pressed="${!!T.dash}">Scatto</button><div class="qty"><button data-act="turn-m" data-d="-1" aria-label="Togli 1,5 m">${ic('minus',20)}</button><b style="min-width:40px">${fmt(Math.max(0,v-used))}</b><button data-act="turn-m" data-d="1" aria-label="Usa 1,5 m">${ic('add',20)}</button></div></div></div>
+    <div class="bar" style="margin:0"><div style="width:${v?Math.min(100,used/v*100):0}%"></div></div>
+    <p class="sub" style="margin:0">Tocca per segnare ciò che hai usato. Nuovo turno azzera tutto; la reazione torna disponibile all’inizio del tuo turno.</p>
+  </section>`;
+}
 function viewAzioni(){
   return `
+  ${turnCard()}
   <div class="row-h"><h2 class="h" style="margin-left:4px">Attacchi</h2>
     <button class="chip warn" data-act="tog-crit" aria-pressed="${crit}">${crit?ic('check',16):''}Danno critico</button></div>
   ${S.attacks.length?`<div class="list">${S.attacks.map((a,i)=>`
@@ -2489,11 +2511,11 @@ function iniStep(dir){
     if(i<0){if(INI.round>1){INI.round--;i=all.length-1;}else{i=all.findIndex(c=>!iniDown(c));break;}}
     if(!iniDown(all[i]))break;
   }
-  INI.cur=all[i].id;iniRefresh();
+  INI.cur=all[i].id;const pc=iniPg(all[i]);if(pc){pc.turn={};persist();render();}iniRefresh();
 }
 function iniStart(){
   const rolled=[];INI.list.forEach(c=>{if(c.init==null){iniRoll(c);rolled.push(c.name+' '+c.init);}});
-  iniSort();INI.round=1;const f=INI.list.find(c=>!iniDown(c));INI.cur=f?f.id:null;iniRefresh();
+  iniSort();INI.round=1;const f=INI.list.find(c=>!iniDown(c));INI.cur=f?f.id:null;const pc=iniPg(f);if(pc){pc.turn={};persist();render();}iniRefresh();
   toast(rolled.length?'Tirate: '+rolled.join(' · '):'Il combattimento comincia.');
 }
 function iniAddForm(){
@@ -2782,6 +2804,11 @@ document.addEventListener('click',e=>{
     case 'mk-deflect':{const l=monkL(),r=d(10),t=r+abilMod('des')+l;showRoll({label:'Deviare Proiettili',total:t,detail:`1d10: ${r} ${sgn(abilMod('des'))} (Destrezza) + ${l} (livello) = danno ridotto di ${t}`});break;}
     case 'mk-whole':{S.res=S.res||{};if((S.res.whole||0)>=1){toast('Integrità del Corpo già usata: torna con un riposo lungo.');break;}const l=monkL(),b=S.hp;S.res.whole=1;S.hp=Math.min(S.hpMax,S.hp+3*l);persist();render();toast(`Integrità del Corpo: +${S.hp-b} PF (${S.hp}/${S.hpMax}).`);break;}
     case 'tog-crit':crit=!crit;render();break;
+    case 'turn-t':{S.turn=S.turn||{};S.turn[D.k]=!S.turn[D.k];persist();render();break;}
+    case 'turn-new':S.turn={};persist();render();toast('Nuovo turno: azione, azione bonus, reazione e movimento disponibili.');break;
+    case 'turn-dash':{S.turn=S.turn||{};S.turn.dash=!S.turn.dash;persist();render();break;}
+    case 'turn-m':{S.turn=S.turn||{};const v=spd()*(S.turn.dash?2:1);S.turn.m=clamp((S.turn.m||0)+1.5*(+D.d),0,v);persist();render();break;}
+    case 'turn-at':{S.turn=S.turn||{};const j=+D.j,n=S.turn.at||0;S.turn.at=j<n?j:j+1;if(S.turn.at)S.turn.a=true;persist();render();break;}
     case 'cond':{const c=D.c,k=S.conds.indexOf(c);if(k>=0)S.conds.splice(k,1);else S.conds.push(c);persist();render();break;}
     case 'exh':S.exh=clamp(S.exh+ +D.d,0,6);persist();render();break;
     /* magie */
