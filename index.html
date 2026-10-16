@@ -684,7 +684,7 @@ const CFD={
 'Percezione Cieca':'Se riesci a sentire, percepisci creature nascoste o invisibili entro 3 m.',
 'Mente Sfuggente':'Ottieni competenza nei tiri salvezza su Saggezza.',
 'Inafferrabile':'Nessun attacco contro di te ha vantaggio finché non sei incapacitato.',
-'Colpo di Fortuna':'Se manchi un attacco puoi trasformarlo in un colpo a segno; se fallisci una prova puoi considerare il d20 un 20. Una volta per riposo.',
+'Colpo di Fortuna':'Se manchi un attacco puoi trasformarlo in un colpo a segno; se fallisci una prova puoi considerare il d20 un 20. Una volta per riposo breve o lungo.',
 'Recupero Arcano':'Una volta al giorno, dopo un riposo breve, recuperi slot incantesimo di livello combinato pari o inferiore a metà del livello da mago (per eccesso), nessuno sopra il 5°.',
 'Tradizione Arcana':'Scegli una scuola di magia, con privilegi ai livelli 2, 6, 10 e 14.',
 'Maestria negli Incantesimi':'Scegli un incantesimo di 1° e uno di 2° livello: puoi lanciarli al livello base senza usare slot.',
@@ -1028,6 +1028,11 @@ function resList(){
     if(l>=14)out.push({k:'cleanse',n:'Tocco Purificante',m:car,r:'lungo'});
   }
   if((l=lvOf('Stregone'))>=2)out.push({k:'sorc',n:'Punti stregoneria',m:l,r:'lungo',pool:1});
+  if((l=lvOf('Ladro'))>=20)out.push({k:'luck',n:'Colpo di Fortuna',m:1,r:'breve'});
+  if((l=lvOf('Warlock'))>=11){
+    [[11,6],[13,7],[15,8],[17,9]].forEach(([lv,sl])=>{if(l>=lv)out.push({k:'arcanum'+sl,n:'Arcanum Mistico ('+sl+'° livello)',m:1,r:'lungo'});});
+    if(l>=20)out.push({k:'eldmaster',n:'Maestro dell’Occulto',m:1,r:'lungo'});
+  }
   return out;
 }
 function resCard(){
