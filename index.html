@@ -520,7 +520,7 @@ const SWATCHES=[['Cremisi',8],['Bronzo',28],['Oliva',75],['Foresta',140],['Cobal
 const ALIGN=['Legale buono','Neutrale buono','Caotico buono','Legale neutrale','Neutrale puro','Caotico neutrale','Legale malvagio','Neutrale malvagio','Caotico malvagio'];
 const BGS={'Accolito':['Intuizione','Religione'],'Artigiano di gilda':['Intuizione','Persuasione'],'Ciarlatano':['Inganno','Rapidità di Mano'],'Criminale':['Inganno','Furtività'],'Eremita':['Medicina','Religione'],'Eroe popolare':['Addestrare Animali','Sopravvivenza'],'Forestiero':['Atletica','Sopravvivenza'],'Intrattenitore':['Acrobazia','Intrattenere'],'Marinaio':['Atletica','Percezione'],'Monello':['Furtività','Rapidità di Mano'],'Nobile':['Persuasione','Storia'],'Sapiente':['Arcano','Storia'],'Soldato':['Atletica','Intimidire']};
 const SUBS={Barbaro:['Cammino del Berserker','Cammino del Combattente Totemico'],Bardo:['Collegio della Sapienza','Collegio del Valore'],Chierico:['Dominio della Conoscenza','Dominio dell’Inganno','Dominio della Guerra','Dominio della Luce','Dominio della Natura','Dominio della Tempesta','Dominio della Vita'],Druido:['Circolo della Terra','Circolo della Luna'],Guerriero:['Campione','Maestro di Battaglia','Cavaliere Mistico'],Ladro:['Ladro','Assassino','Mistificatore Arcano'],Mago:['Scuola di Abiurazione','Scuola di Ammaliamento','Scuola di Divinazione','Scuola di Evocazione','Scuola di Illusione','Scuola di Invocazione','Scuola di Negromanzia','Scuola di Trasmutazione'],Monaco:['Via della Mano Aperta','Via dell’Ombra','Via dei Quattro Elementi'],Paladino:['Giuramento di Devozione','Giuramento degli Antichi','Giuramento di Vendetta'],Ranger:['Cacciatore','Signore delle Bestie'],Stregone:['Discendenza Draconica','Magia Selvaggia'],Warlock:['Il Signore Fatato','L’Immondo','Il Grande Antico']};
-const WEAP=[['Pugnale','1d4','perforante','f'],['Bastone ferrato','1d6','contundente','for'],['Clava','1d4','contundente','for'],['Ascia','1d6','tagliente','for'],['Mazza','1d6','contundente','for'],['Lancia','1d6','perforante','for'],['Spada corta','1d6','perforante','f'],['Spada lunga','1d8','tagliente','for'],['Stocco','1d8','perforante','f'],['Scimitarra','1d6','tagliente','f'],['Spadone','2d6','tagliente','for'],['Ascia bipenne','1d12','tagliente','for'],['Martello da guerra','1d8','contundente','for'],['Frusta','1d4','tagliente','f'],['Arco corto','1d6','perforante','des'],['Arco lungo','1d8','perforante','des'],['Balestra leggera','1d8','perforante','des'],['Balestra a mano','1d6','perforante','des']];
+const WEAP=[['Colpo senz’armi', '1', 'contundente', 'for', 'm1', 'Nessuna arma'], ['Ascia', '1d6', 'tagliente', 'for', 'm1', 'Leggera, Lancio (6/18)'], ['Ascia da Battaglia', '1d8', 'tagliente', 'for', 'm1', 'Versatile (1d10)'], ['Bastone Ferrato', '1d6', 'contundente', 'for', 'm1', 'Versatile (1d8)'], ['Falcetto', '1d4', 'tagliente', 'for', 'm1', 'Leggera'], ['Frusta', '1d4', 'tagliente', 'f', 'm1', 'Accurata, Portata'], ['Giavellotto', '1d6', 'perforante', 'for', 'm1', 'Lancio (9/36)'], ['Lancia', '1d6', 'perforante', 'for', 'm1', 'Lancio (6/18), Versatile (1d8)'], ['Lancia da Cavaliere', '1d12', 'perforante', 'for', 'm1', 'Portata, Speciale'], ['Martello da Guerra', '1d8', 'contundente', 'for', 'm1', 'Versatile (1d10)'], ['Martello Leggero', '1d4', 'contundente', 'for', 'm1', 'Leggera, Lancio (6/18)'], ['Mazza', '1d6', 'contundente', 'for', 'm1', ''], ['Mazzafrusto', '1d8', 'contundente', 'for', 'm1', ''], ['Morning Star', '1d8', 'perforante', 'for', 'm1', ''], ['Piccone da Guerra', '1d8', 'perforante', 'for', 'm1', ''], ['Pugnale', '1d4', 'perforante', 'f', 'm1', 'Accurata, Leggera, Lancio (6/18)'], ['Randello', '1d4', 'contundente', 'for', 'm1', 'Leggera'], ['Scimitarra', '1d6', 'tagliente', 'f', 'm1', 'Accurata, Leggera'], ['Spada Corta', '1d6', 'perforante', 'f', 'm1', 'Accurata, Leggera'], ['Spada Lunga', '1d8', 'tagliente', 'for', 'm1', 'Versatile (1d10)'], ['Stocco', '1d8', 'perforante', 'f', 'm1', 'Accurata'], ['Tridente', '1d6', 'perforante', 'for', 'm1', 'Lancio (6/18), Versatile (1d8)'], ['Alabarda', '1d10', 'tagliente', 'for', 'm2', 'Due Mani, Pesante, Portata'], ['Ascia Bipenne', '1d12', 'tagliente', 'for', 'm2', 'Due Mani, Pesante'], ['Falcione', '1d10', 'tagliente', 'for', 'm2', 'Due Mani, Pesante, Portata'], ['Maglio', '2d6', 'contundente', 'for', 'm2', 'Due Mani, Pesante'], ['Picca', '1d10', 'perforante', 'for', 'm2', 'Due Mani, Pesante, Portata'], ['Randello Pesante', '1d8', 'contundente', 'for', 'm2', 'Due Mani'], ['Spadone', '2d6', 'tagliente', 'for', 'm2', 'Due Mani, Pesante'], ['Arco Corto', '1d6', 'perforante', 'des', 'dist', 'Due Mani, Munizioni (24/96)'], ['Arco Lungo', '1d8', 'perforante', 'des', 'dist', 'Due Mani, Pesante, Munizioni (45/180)'], ['Balestra a Mano', '1d6', 'perforante', 'des', 'dist', 'Leggera, Munizioni (9/36), Ricarica'], ['Balestra Leggera', '1d8', 'perforante', 'des', 'dist', 'Due Mani, Munizioni (24/96), Ricarica'], ['Balestra Pesante', '1d10', 'perforante', 'des', 'dist', 'Due Mani, Pesante, Munizioni (30/120), Ricarica'], ['Cerbottana', '1', 'perforante', 'des', 'dist', 'Munizioni (7,5/30), Ricarica'], ['Dardo', '1d4', 'perforante', 'des', 'dist', 'Accurata, Lancio (6/18)'], ['Fionda', '1d4', 'contundente', 'des', 'dist', 'Munizioni (9/36)']];
 const GEAR=[['Zaino',2.5],['Sacco a pelo',3.5],['Corda di canapa (15 m)',5],['Torcia',0.5],['Razione di viaggio',1],['Otre',2.5],['Acciarino',0],['Lanterna schermabile',1],['Pozione di guarigione',0.25],['Libro degli incantesimi',1.5],['Simbolo sacro',0.5],['Arnesi da scasso',0.5]];
 const CL={M:'Mago',S:'Stregone',W:'Warlock',B:'Bardo',C:'Chierico',D:'Druido',P:'Paladino',R:'Ranger'};
 const SPELLS=[['Fiotto Acido',0,'MS','18 m · 1d6 acido'],['Luce',0,'MBCS','Tocco · 1 ora'],['Mano Magica',0,'MSWB','9 m · 1 minuto'],['Prestidigitazione',0,'MSWB',''],['Messaggio',0,'MSB',''],['Raggio di Gelo',0,'MS','18 m · 1d8 freddo'],['Illusione Minore',0,'MSWB',''],['Tocco Gelido',0,'MSW','36 m · 1d8 necrotico'],['Stretta Folgorante',0,'MS','Tocco · 1d8 fulmine'],['Deflagrazione Occulta',0,'W','36 m · 1d10 forza'],['Luci Danzanti',0,'MSB',''],['Riparare',0,'BCDMS',''],['Spruzzo Velenoso',0,'MSWD','3 m · 1d12 veleno'],
@@ -1439,12 +1439,31 @@ function drawPick(){
     return `<div class="pk"><button class="item" data-act="${e.d?'pk-open':'pick'}" data-i="${i}" aria-expanded="${!!open}"><span class="row-main"><b>${esc(e.n)}</b><small>${esc(e.s||'')}</small></span>${ic(e.d?(open?'chevUp':'chev'):'add')}</button>${open?`<div class="pk-det">${e.m?`<p class="sub">${esc(e.m)}</p>`:''}<p>${esc(e.d)}</p><button class="btn full" data-act="pick" data-i="${i}">Aggiungi</button></div>`:''}</div>`;
   }).join(''):'<div class="empty">Nessun risultato.</div>';
 }
+const ATKCATS=[['t','Tutte'],['m1','Una mano'],['m2','Due mani'],['dist','Distanza'],['inc','Incantesimi']];
+function spellAtks(){
+  const L=Object.keys(CL).find(k=>CL[k]===castCls().n);
+  const out=[];
+  SPELLS.forEach(s=>{
+    if(L&&!s[2].includes(L))return;
+    const d=SPD[s[0]]||[],note=s[3]||'';
+    let m=note.match(/(\d+d\d+(?:\s*\+\s*\d+)?)\s+([a-zàèéìòù]+)/i);
+    if(!m)m=(d[5]||'').match(/(\d+d\d+(?:\s*\+\s*\d+)?)[^.]{0,40}?danni\s+(?:da\s+|di\s+)?([a-zàèéìòù]+)/i);
+    if(!m)return;
+    out.push({n:s[0],s:`${s[1]?'Liv. '+s[1]:'Trucchetto'} · ${m[1].replace(/\s+/g,'')} ${m[2]}`,cat:'inc',d:d[5],m:d.length?[1,2,4].map(k=>d[k]).join(' · '):'',sp:s,dm:m[1].replace(/\s+/g,''),ty:m[2]});
+  });
+  return out;
+}
 function pickAtk(){
-  pick('Aggiungi arma',WEAP.map(w=>({n:w[0],s:`${w[1]} ${w[2]}`,w})),e=>{
+  const wl=WEAP.map(w=>({n:w[0],s:`${w[1]} ${w[2]}${w[5]?' · '+w[5]:''}`,w,cat:w[4]}));
+  const all=[...wl,...spellAtks()];
+  PK_ATK=all;
+  pick('Aggiungi attacco',all,e=>{
+    if(e.sp){const ab=S.spellAb||(CLASSES[castCls().n]||{}).spell||'';S.attacks.push({name:e.n,ab,prof:true,bonus:0,dmg:e.dm,type:e.ty});return;}
     const w=e.w,ab=w[3]==='f'?(S.abilities.des>=S.abilities.for?'des':'for'):w[3],m=abilMod(ab);
     S.attacks.push({name:w[0],ab,prof:true,bonus:0,dmg:w[1]+(m?(m>0?'+':'-')+Math.abs(m):''),type:w[2]});
-  },()=>editAtk(-1));
+  },()=>editAtk(-1),`<div class="chips" id="atk-cats">${ATKCATS.map(([k,n])=>`<button class="chip" data-act="atk-cat" data-c="${k}" aria-pressed="${k==='t'}">${n}</button>`).join('')}</div>`);
 }
+let PK_ATK=[];
 function pickSpell(){
   const L=Object.keys(CL).find(k=>CL[k]===castCls().n);
   const all=SPELLS.map(s=>({n:s[0],s:`${s[1]?'Liv. '+s[1]:'Trucchetto'} · ${[...s[2]].map(c=>CL[c]).join(', ')}${s[3]?' · '+s[3]:''}`,sp:s,d:(SPD[s[0]]||[])[5],m:SPD[s[0]]?[1,2,4].map(k=>SPD[s[0]][k]).join(' · '):''}));
@@ -1834,6 +1853,7 @@ document.addEventListener('click',e=>{
     case 'del-talent':delFeat(i);persist();render();break;
     case 'pick':PK.onPick(PK.list[i]);persist();closeSheet();render();break;
     case 'pick-custom':{const c=PK.custom;closeSheetInstant();c();break;}
+    case 'atk-cat':{PK.list=D.c==='t'?PK_ATK:PK_ATK.filter(e=>e.cat===D.c);root.querySelectorAll('#atk-cats .chip').forEach(c=>c.setAttribute('aria-pressed',String(c.dataset.c===D.c)));PK.open=-1;drawPick();break;}
     case 'sp-all':{const on=el.getAttribute('aria-pressed')==='true';el.setAttribute('aria-pressed',String(!on));PK.list=on?PK.all:PK.mine;drawPick();break;}
     case 'edit-item':editItem(i);break;
     case 'qty':S.items[i].qty=Math.max(0,S.items[i].qty+ +D.d);persist();render();break;
