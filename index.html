@@ -1035,6 +1035,8 @@ function resList(){
   if((l=lvOf('Paladino'))>=15){const sb=subOf('Paladino');if(sb==='Giuramento degli Antichi')out.push({k:'undying',n:'Sentinella Imperitura',m:1,r:'lungo'});if(l>=20&&OATH_20[sb])out.push({k:'cap20',n:OATH_20[sb][0],m:1,r:'lungo'});}
   if((l=lvOf('Ladro'))>=17&&subOf('Ladro')==='Mistificatore Arcano')out.push({k:'spthief',n:'Ladro di Incantesimi',m:1,r:'lungo'});
   if(lvOf('Stregone')>=1&&subOf('Stregone')==='Magia Selvaggia')out.push({k:'tides',n:'Onde di Caos',m:1,r:'lungo'});
+  if((l=lvOf('Mago'))>=6){const sb=subOf('Mago');if(sb==='Scuola di Divinazione'&&l>=10)out.push({k:'third',n:'Terzo Occhio',m:1,r:'breve'});if(sb==='Scuola di Evocazione')out.push({k:'benign',n:'Trasposizione Benevola',m:1,r:'lungo'});if(sb==='Scuola di Illusione'&&l>=10)out.push({k:'illself',n:'Sosia Illusorio',m:1,r:'breve'});if(sb==='Scuola di Trasmutazione'&&l>=10)out.push({k:'shapech',n:'Mutaforma',m:1,r:'breve'});if(sb==='Scuola di Trasmutazione'&&l>=14)out.push({k:'mastert',n:'Maestro Trasmutatore',m:1,r:'lungo'});if(l>=20){out.push({k:'sig1',n:'Incantesimo Personale 1',m:1,r:'breve'});out.push({k:'sig2',n:'Incantesimo Personale 2',m:1,r:'breve'});}}
+  if((l=lvOf('Warlock'))>=2){if(l>=14&&subOf('Warlock')==='Il Signore Fatato')out.push({k:'delir',n:'Delirio Oscuro',m:1,r:'breve'});chosen('suppl',SUPPL).forEach(k=>{const x=SUPPL.find(y=>y[0]===k);if(x[5]==='s'&&l>=x[2])out.push({k:'inv_'+k,n:x[1],m:1,r:'lungo'});});}
   if((l=lvOf('Warlock'))>=11){
     [[11,6],[13,7],[15,8],[17,9]].forEach(([lv,sl])=>{if(l>=lv)out.push({k:'arcanum'+sl,n:'Arcanum Mistico ('+sl+'° livello)',m:1,r:'lungo'});});
     if(l>=20)out.push({k:'eldmaster',n:'Maestro dell’Occulto',m:1,r:'lungo'});
@@ -1055,7 +1057,7 @@ function resCard(){
     return `<div class="slot-row" style="flex-wrap:wrap"><div style="flex:1 1 140px;min-width:0"><b>${esc(x.n)}</b><br>${rl}</div><div class="pips" style="flex:0 1 auto">${Array.from({length:x.m},(_,j)=>`<button class="pip${j<av?' on':''}" data-act="res" data-k="${x.k}" data-j="${j}" aria-label="${esc(x.n)} ${j<av?'disponibile':'usato'}" aria-pressed="${j<av}"></button>`).join('')}</div><span class="cnt">${av}/${x.m}</span></div>`;
   }).join('')}</section>`;
 }
-function resReset(kind){S.res=S.res||{};S.relent=0;if(kind==='long'){S.res={};return;}resList().forEach(x=>{if(x.r==='breve')delete S.res[x.k];});}
+function resReset(kind){S.res=S.res||{};S.relent=0;if(kind==='long'){S.ward=null;S.overch=0;S.portent=lvOf('Mago')>=2&&subOf('Mago')==='Scuola di Divinazione'?Array.from({length:portentN(lvOf('Mago'))},()=>({v:d(20),u:0})):null;}if(kind==='long'){S.res={};return;}resList().forEach(x=>{if(x.r==='breve')delete S.res[x.k];});}
 function rageCard(){
   const l=barbL();if(!l)return'';
   const mx=rageMax(l),u=S.rageU||0,left=mx===Infinity?Infinity:Math.max(0,mx-u),on=!!S.raging;
@@ -1579,8 +1581,8 @@ function xRollF(f,label,useCrit,extra){
 /* scelte (manovre, metamagia, prede del cacciatore, spiriti totemici) */
 const chosen=(g,list)=>((S.ch||{})[g]||[]).filter(id=>list.some(x=>x[0]===id));
 function chChips(g,list,max,lvl){
-  const sel=chosen(g,list),full=sel.length>=max;
-  return `<div class="chips">${list.map(x=>{const on=sel.includes(x[0]),ok=!x[2]||lvl>=x[2];return `<button class="chip" data-act="x-ch-t" data-g="${g}" data-k="${x[0]}" data-m="${max}" aria-pressed="${on}"${!on&&(!ok||(full&&max>1))?' disabled style="opacity:.45"':''}>${on?ic('check',16):''}${esc(x[1])}${typeof x[4]==='number'||x[4]==='liv.'?' · '+x[4]+' pt':''}${x[2]>3?' · '+x[2]+'°':''}</button>`;}).join('')}</div>`;
+  const sel=chosen(g,list),full=sel.length>=max;const pOK=x=>!['catena','lama','tomo'].includes(x[4])||x[4]===myPact();
+  return `<div class="chips">${list.map(x=>{const on=sel.includes(x[0]),ok=(!x[2]||lvl>=x[2])&&pOK(x);return `<button class="chip" data-act="x-ch-t" data-g="${g}" data-k="${x[0]}" data-m="${max}" aria-pressed="${on}"${!on&&(!ok||(full&&max>1))?' disabled style="opacity:.45"':''}>${on?ic('check',16):''}${esc(x[1])}${typeof x[4]==='number'||x[4]==='liv.'?' · '+x[4]+' pt':''}${x[2]>3?' · '+x[2]+'°':''}</button>`;}).join('')}</div>`;
 }
 let XPANEL=null;
 function chPanel(g,title,list,max,lvl,note){XPANEL=()=>chPanel(g,title,list,max,lvl,note);openSheet({title,body:`<p class="sub">${note} Scelte: ${chosen(g,list).length}/${max}.</p>${chChips(g,list,max,lvl)}`});}
@@ -1801,8 +1803,104 @@ function sorcCard(){
   if(l>=20)ot.push(xRow('Ripristino Stregonesco','Recuperi 4 punti stregoneria a ogni riposo breve',''));
   return xCard('Azioni dello stregone','Stregone',`Livello ${l}`,head,[xSec('Fonte di Magia',fm),mm.length?`<h3 class="group-h" style="margin:4px 0 0">Metamagia</h3><div class="list">${mm.join('')}</div>`:'',xSec('Azione',az),xSec('Azione bonus',bo),xSec('Altri usi',ot),xSec('Reazioni',re)]);
 }
-const classCards=()=>[barbCard(),bardCard(),clerCard(),druCard(),fightCard(),rogCard(),palCard(),rangCard(),sorcCard()].join('');
+/* ── Mago (Manuale pp. 84–88) ── */
+const portentN=l=>l>=14?3:2;
+function wizCard(){
+  const l=lvOf('Mago');if(!l)return'';const sub=subOf('Mago'),dc=dcOf('int'),im=abilMod('int');
+  const az=[],bo=[],ot=[],re=[],sc=[];
+  ot.push(xRow('Recupero Arcano',`Una volta al giorno, dopo un riposo breve: recuperi slot per un totale di ${Math.ceil(l/2)} livelli, nessuno di 6° o superiore`,xPill('x-arcrec','','Recupera',((resInfo('arc')||{left:0}).left)+'/1',!!((resInfo('arc')||{}).left))));
+  if(l>=18)ot.push(xRow('Maestria negli Incantesimi','Un incantesimo di 1° e uno di 2° livello del tuo libro si lanciano al loro livello senza slot',''));
+  if(l>=20)ot.push(xRow('Incantesimi Personali','Due incantesimi di 3° livello sempre preparati: ognuno si lancia una volta al 3° senza slot, poi serve un riposo breve',xUse('sig1','1°')+xUse('sig2','2°')));
+  if(sub==='Scuola di Abiurazione'){
+    const w=S.ward||{hp:0,made:0},wm=2*l+im;
+    sc.push(`<div class="item" style="flex-direction:column;align-items:stretch"><div class="row-main"><b>Interdizione Arcana</b><small style="white-space:normal">Lanciando un’abiurazione di 1° livello o più crei una barriera da ${wm} PF che assorbe i danni prima di te; dura fino al riposo lungo. Ogni abiurazione successiva la ricarica di 2 × livello dell’incantesimo${l>=6?'. Interdizione Proiettata: con la reazione assorbe i danni di una creatura entro 9 m':''}</small></div>
+      <div class="row-h">${w.made?`<div class="qty"><button data-act="x-ward" data-d="-1" aria-label="Togli 1 PF">${ic('minus',20)}</button><b style="min-width:72px">${w.hp}/${wm} PF</b><button data-act="x-ward" data-d="1" aria-label="Aggiungi 1 PF">${ic('add',20)}</button></div><button class="btn tonal sm" data-act="x-ward-hit">Assorbi danni</button>`:`<span class="sub">Non ancora creata</span><button class="btn sm" data-act="x-ward-make">Crea (${wm} PF)</button>`}</div>
+      ${w.made?`<div class="chips">${[1,2,3,4,5,6,7,8,9].map(v=>`<button class="chip" data-act="x-ward-up" data-l="${v}">Abiurazione ${v}° · +${2*v}</button>`).join('')}</div>`:''}</div>`);
+    if(l>=10)ot.push(xRow('Abiurazione Migliorata',`+${pb()} alle prove di caratteristica degli incantesimi di abiurazione (controincantesimo, dissolvi magie)`,''));
+    if(l>=14)ot.push(xRow('Resistenza agli Incantesimi','Vantaggio ai TS contro incantesimi e resistenza ai loro danni',''));
+  }
+  if(sub==='Scuola di Ammaliamento'){
+    az.push(xRow('Sguardo Ipnotico',`Azione: una creatura entro 1,5 m che ti vede e sente fa un TS Saggezza CD ${dc}: se fallisce è affascinata, velocità 0 e incapacitata fino alla fine del tuo prossimo turno. Ogni turno puoi prolungarlo con l’azione`,''));
+    if(l>=6)re.push(xRow('Fascino Istintivo',`Reazione quando una creatura entro 9 m ti attacca: TS Saggezza CD ${dc}, se fallisce deve attaccare la creatura più vicina (tranne te)`,''));
+    if(l>=10)ot.push(xRow('Ammaliamento Condiviso','Un ammaliamento di 1° livello o più a bersaglio singolo colpisce anche una seconda creatura',''));
+    if(l>=14)az.push(xRow('Alterare Ricordi',`La creatura affascinata non si accorge di esserlo; con l’azione le fai dimenticare fino a ${Math.max(1,1+abilMod('car'))} ore (TS Intelligenza CD ${dc})`,''));
+  }
+  if(sub==='Scuola di Divinazione'){
+    const P=S.portent||[];
+    sc.push(`<div class="item" style="flex-direction:column;align-items:stretch"><div class="row-main"><b>Portento${l>=14?' Superiore':''}</b><small style="white-space:normal">Dopo un riposo lungo tiri ${portentN(l)}d20: puoi sostituire con uno di questi un tiro per colpire, una prova o un TS tuo o di una creatura che vedi, prima che sia tirato. Uno per turno; si perdono al riposo lungo</small></div>
+      <div class="chips">${P.length?P.map((v,i)=>`<button class="chip" data-act="x-portent" data-i="${i}" aria-pressed="${v.u?'false':'true'}"${v.u?' disabled style="opacity:.45"':''}>${v.v}${v.u?' · usato':''}</button>`).join(''):''}<button class="chip" data-act="x-portent-roll">${ic('add',16)}${P.length?'Ritira':'Tira'} ${portentN(l)}d20</button></div></div>`);
+    if(l>=6)ot.push(xRow('Divinazione Esperta','Lanciando una divinazione di 2° livello o più recuperi uno slot di livello inferiore (massimo 5°)',''));
+    if(l>=10)az.push(xRow('Terzo Occhio','Azione: comprensione dei linguaggi scritti, scurovisione 18 m, vedere l’invisibile entro 3 m o vista eterea 18 m, fino a un riposo',xUse('third')));
+  }
+  if(sub==='Scuola di Evocazione'){
+    az.push(xRow('Evocazione Minore','Azione: crei un oggetto non magico di 5 kg al massimo entro 3 m; dura 1 ora',''));
+    if(l>=6)az.push(xRow('Trasposizione Benevola','Azione: ti teletrasporti fino a 9 m, o scambi posto con una creatura Piccola o Media consenziente. Si ricarica col riposo lungo o lanciando un’evocazione',xUse('benign')));
+    if(l>=10)ot.push(xRow('Evocazione Focalizzata','La concentrazione su un incantesimo di evocazione non si interrompe per i danni',''));
+    if(l>=14)ot.push(xRow('Evocazioni Perduranti','Le creature che evochi o crei hanno 30 PF temporanei',''));
+  }
+  if(sub==='Scuola di Illusione'){
+    ot.push(xRow('Illusione Minore Migliorata','Con illusione minore crei insieme un suono e un’immagine',''));
+    if(l>=6)az.push(xRow('Illusioni Duttili','Azione: cambi la natura di un’illusione di 1 minuto o più che stai mantenendo',''));
+    if(l>=10)re.push(xRow('Sosia Illusorio','Reazione quando ti attaccano: un duplicato si interpone e l’attacco ti manca',xUse('illself')));
+    if(l>=14)bo.push(xRow('Realtà Illusoria','Azione bonus: un oggetto non magico della tua illusione diventa reale per 1 minuto',''));
+  }
+  if(sub==='Scuola di Invocazione'){
+    ot.push(xRow('Plasmare Incantesimi','Con un’invocazione che colpisce un’area scegli fino a 1 + livello dell’incantesimo creature: superano il TS e non subiscono danni',''));
+    if(l>=6)ot.push(xRow('Trucchetto Potente','Chi supera il TS contro un tuo trucchetto subisce comunque metà dei danni',''));
+    if(l>=10)ot.push(xRow('Invocazione Potente',`+${im} (Intelligenza) a un tiro di danni delle tue invocazioni da mago`,''));
+    if(l>=14){const n=S.overch||0;ot.push(xRow('Saturazione Magica',`Un incantesimo di 1°–5° livello che fa danni infligge il massimo. ${n?`Usata ${n} volt${n===1?'a':'e'} dall’ultimo riposo lungo: la prossima ti costa ${1+n}d12 necrotici per livello dell’incantesimo`:'La prima volta è gratis; le successive prima del riposo lungo ti infliggono danni necrotici'}`,xPill('x-overch','','Usa',n?'danni':'gratis',1)));}
+  }
+  if(sub==='Scuola di Necromanzia'){
+    ot.push(xRow('Raccolto Macabro','Una volta per turno, se uccidi con un incantesimo di 1° livello o più recuperi 2 × livello PF (3 × se è una necromanzia). Non con costrutti o non morti',xPill('x-harvest','','Cura','PF',1)));
+    if(l>=6)ot.push(xRow('Servitori Non Morti',`I non morti che crei con la necromanzia hanno +${l} PF massimi e +${pb()} ai danni con le armi`,''));
+    if(l>=10)ot.push(xRow('Impervio alla Non Morte','Resistenza ai danni necrotici; il tuo massimo di PF non può essere ridotto',''));
+    if(l>=14)az.push(xRow('Comandare Non Morti',`Azione: un non morto entro 18 m fa un TS Carisma CD ${dc} o diventa tuo alleato`,''));
+  }
+  if(sub==='Scuola di Trasmutazione'){
+    ot.push(xRow('Alchimia Minore','10 minuti: trasformi legno, pietra, ferro, rame o argento in un altro di questi materiali per 1 ora',''));
+    if(l>=6)ot.push(xRow('Pietra del Trasmutatore','Pietra che dà scurovisione 18 m, +3 m di velocità, competenza nei TS su Costituzione o resistenza a un tipo di energia',''));
+    if(l>=10)az.push(xRow('Mutaforma','Lanci metamorfosi su te stesso senza slot, in una bestia di GS 1 o inferiore',xUse('shapech')));
+    if(l>=14)az.push(xRow('Maestro Trasmutatore','Azione: consumi la pietra per Panacea, Ripristinare Giovinezza, Ripristinare Vita o Trasformazione Maggiore',xUse('mastert')));
+  }
+  return xCard('Azioni del mago','Mago',`CD ${dc} · ${sgn(pb()+im)} per colpire`,'',[xSec('Scuola',sc),xSec('Azione',az),xSec('Azione bonus',bo),xSec('Altri usi',ot),xSec('Reazioni',re)]);
+}
+
+/* ── Warlock (Manuale pp. 114–119) ── */
+const PATTI=[['catena','Patto della Catena'],['lama','Patto della Lama'],['tomo','Patto del Tomo']];
+const SUPPL=[['armatura','Armatura delle Ombre',0,'Lanci armatura magica su te stesso a volontà'],['balzo','Balzo Ultraterreno',9,'Lanci saltare su te stesso a volontà'],['catene','Catene di Carceri',15,'Lanci blocca mostri a volontà su celestiali, immondi ed elementali; una volta per creatura per riposo lungo','catena'],
+ ['agoniz','Deflagrazione Agonizzante',0,'+Carisma ai danni di deflagrazione occulta','eb'],['respin','Deflagrazione Respingente',0,'Deflagrazione occulta spinge di 3 m il bersaglio colpito','eb'],['fardello','Fardello Mentale',5,'Lanci lentezza con uno slot del patto, una volta per riposo lungo',0,'s'],
+ ['influenza','Influenza Seducente',0,'Competenza in Inganno e Persuasione'],['cinque','Ladro dei Cinque Fati',0,'Lanci anatema con uno slot del patto, una volta per riposo lungo',0,'s'],['assetata','Lama Assetata',5,'Due attacchi con l’arma del patto con l’azione di Attacco','lama'],
+ ['lancia','Lancia Occulta',0,'Deflagrazione occulta ha gittata 90 m','eb'],['libro','Libro degli Antichi Segreti',0,'Due rituali di 1° livello di qualsiasi classe nel Libro delle Ombre, e se ne aggiungono altri','tomo'],['bestie','Lingue delle Bestie',0,'Lanci parlare con gli animali a volontà'],
+ ['milleforme','Maestro di Mille Forme',15,'Lanci alterare se stesso a volontà'],['maschera','Maschera dei Molti Volti',0,'Lanci camuffare se stesso a volontà'],['rune','Occhi del Custode delle Rune',0,'Leggi ogni forma di scrittura'],
+ ['parola','Parola Temibile',7,'Lanci confusione con uno slot del patto, una volta per riposo lungo',0,'s'],['passo','Passo Ascendente',9,'Lanci levitazione su te stesso a volontà'],['presagio','Presagio di Sventura',5,'Lanci scagliare maledizione con uno slot del patto, una volta per riposo lungo',0,'s'],
+ ['scultore','Scultore della Carne',7,'Lanci metamorfosi con uno slot del patto, una volta per riposo lungo',0,'s'],['caos','Servitori del Caos',9,'Lanci evoca elementale con uno slot del patto, una volta per riposo lungo',0,'s'],['duementi','Sguardo delle Due Menti',0,'Azione: percepisci tramite i sensi di un umanoide consenziente che tocchi'],
+ ['succhia','Succhiavita',12,'Quando colpisci con l’arma del patto: +Carisma (min 1) danni necrotici','lama'],['tomba','Sussurri dalla Tomba',9,'Lanci parlare con i morti a volontà'],['sussurri','Sussurri Stregati',7,'Lanci compulsione con uno slot del patto, una volta per riposo lungo',0,'s'],
+ ['ombre','Tutt’Uno con le Ombre',5,'Azione: in luce fioca o buio sei invisibile finché non ti muovi o agisci'],['vigore','Vigore Immondo',0,'Lanci vita falsata su te stesso a volontà, come incantesimo di 1° livello'],['reami','Visione dei Reami Lontani',15,'Lanci occhio arcano a volontà'],
+ ['velate','Visioni Velate',0,'Lanci immagine silenziosa a volontà'],['diavolo','Vista del Diavolo',0,'Vedi nel buio, anche magico, fino a 36 m'],['occulto','Vista dell’Occulto',0,'Lanci individuazione del magico a volontà'],['stregata','Vista Stregata',15,'Vedi la vera forma di mutaforma e creature celate da illusioni o trasmutazioni entro 9 m'],
+ ['voce','Voce del Signore delle Catene',0,'Comunichi telepaticamente con il famiglio e percepisci e parli attraverso di lui','catena']].map(x=>[x[0],x[1],x[2],x[3],x[4]||'',x[5]||'']);
+const supplN=l=>[0,2,2,2,3,3,4,4,5,5,5,6,6,6,7,7,7,8,8,8][Math.min(20,l)-1]||0;
+const myPact=()=>chosen('pact',PATTI)[0]||'';
+function warCard(){
+  const l=lvOf('Warlock');if(!l)return'';const sub=subOf('Warlock'),dc=dcOf('car'),cm=abilMod('car'),pk=myPact();
+  const sp=chosen('suppl',SUPPL),has=k=>sp.includes(k),az=[],bo=[],ot=[],re=[],pt=[],sv=[];
+  const knowsEB=(S.spells||[]).some(x=>x.name==='Deflagrazione Occulta');
+  if(knowsEB||has('agoniz')){const beams=S.level>=17?4:S.level>=11?3:S.level>=5?2:1,f='1d10'+(has('agoniz')&&cm?sgn(cm).replace('−','-'):'');
+    az.push(xRow('Deflagrazione Occulta',`${beams} ragg${beams===1?'io':'i'} · ${f} forza · gittata ${has('lancia')?90:36} m${has('respin')?' · spinge di 3 m':''}${has('agoniz')?' · Agonizzante':''}`,xPill('x-eb','','Tira',beams+'×',1)));}
+  else az.push(xRow('Deflagrazione Occulta','Aggiungi il trucchetto agli incantesimi per vederlo qui con raggi e danni',''));
+  if(l>=3){pt.push(`<div class="item" style="flex-direction:column;align-items:stretch"><div class="row-main"><b>${pk?esc((PATTI.find(x=>x[0]===pk)||[])[1]):'Scegli il dono (3°)'}</b><small style="white-space:normal">${{catena:'Conosci trova famiglio (anche imp, pseudodrago, quasit o spiritello) e lo lanci come rituale. Con l’azione di Attacco puoi rinunciare a un attacco perché il famiglio attacchi con la reazione',lama:'Azione: crei un’arma da mischia del patto a tua scelta, magica, in cui sei competente. Puoi legare un’arma magica con un rituale di 1 ora',tomo:'Libro delle Ombre: tre trucchetti di qualsiasi classe, lanciati a volontà quando lo porti con te'}[pk]||'Scegli tra Catena, Lama e Tomo'}</small></div>${chChips('pact',PATTI,1,l)}</div>`);
+    if(pk==='lama'){az.push(xRow('Arma del patto',`Azione: compare in mano${has('assetata')?' · 2 attacchi con l’azione di Attacco':''}${has('succhia')?` · Succhiavita +${Math.max(1,cm)} necrotici`:''}`,has('succhia')?xRoll(String(Math.max(1,cm)),'Succhiavita (necrotici)','Danno',0):''));}}
+  if(l>=2){sv.push(`<div class="row-h"><span class="sub">Ne conosci ${supplN(l)} al tuo livello</span><button class="btn text sm" data-act="x-ch-pick" data-g="suppl">Scegli (${sp.length}/${supplN(l)})</button></div>`);
+    sp.forEach(k=>{const x=SUPPL.find(y=>y[0]===k);sv.push(xRow(esc(x[1]),esc(x[3]),x[5]==='s'?xPill('x-inv',`data-k="${k}"`,'Lancia',((resInfo('inv_'+k)||{left:0}).left)+'/1',!!((resInfo('inv_'+k)||{}).left)):''));});}
+  if(sub==='Il Signore Fatato'){az.push(xRow('Presenza Fatata',`Azione: le creature in un cubo di 3 m da te fanno un TS Saggezza CD ${dc} o sono affascinate o spaventate fino alla fine del tuo prossimo turno`,xUse('feyp')));if(l>=6)re.push(xRow('Fuga Velata','Reazione quando subisci danni: invisibile e ti teletrasporti fino a 18 m, fino all’inizio del tuo prossimo turno',xUse('mist')));if(l>=10)re.push(xRow('Difese Seducenti',`Non puoi essere affascinato; con la reazione rivolti l’effetto (TS Saggezza CD ${dc})`,''));if(l>=14)az.push(xRow('Delirio Oscuro',`Azione: una creatura entro 18 m fa un TS Saggezza CD ${dc} o è affascinata o spaventata in un reame illusorio per 1 minuto (concentrazione)`,xUse('delir')));}
+  if(sub==='L’Immondo'){ot.push(xRow('Benedizione dell’Oscuro',`Quando porti una creatura ostile a 0 PF ottieni ${Math.max(1,cm+l)} PF temporanei`,xPill('x-dob','','Prendi','+'+Math.max(1,cm+l),1)));if(l>=6)ot.push(xRow('Fortuna dell’Oscuro','+1d10 a una prova di caratteristica o a un TS, dopo aver visto il tiro',xUR('dluck','1d10','Fortuna dell’Oscuro')));if(l>=10)ot.push(xRow('Resilienza Immonda','Dopo un riposo scegli un tipo di danno: hai resistenza (non contro armi magiche o d’argento)',''));if(l>=14)ot.push(xRow('Scagliare all’Inferno','Quando colpisci: il bersaglio sparisce fino alla fine del tuo prossimo turno e, se non è un immondo, subisce 10d10 psichici',xUR('hurl','10d10','Scagliare all’Inferno (psichici)')));}
+  if(sub==='Il Grande Antico'){ot.push(xRow('Mente Risvegliata','Parli telepaticamente con una creatura entro 9 m che conosce almeno un linguaggio',''));if(l>=6)re.push(xRow('Interdizione Entropica','Reazione: svantaggio a un attacco contro di te; se manca, vantaggio al tuo prossimo attacco contro chi l’ha fatto',xUse('entw')));if(l>=10)ot.push(xRow('Scudo del Pensiero','Pensieri illeggibili, resistenza ai danni psichici; chi te ne infligge subisce gli stessi danni',''));if(l>=14)az.push(xRow('Creare Servitore','Azione: tocchi un umanoide incapacitato, resta affascinato finché non viene rimossa la maledizione',''));}
+  if(l>=11)ot.push(xRow('Arcanum Mistico','Ogni incantesimo arcanum si lancia una volta per riposo lungo senza slot',[6,7,8,9].filter(x=>resInfo('arcanum'+x)).map(x=>xUse('arcanum'+x,x+'°')).join('')));
+  if(l>=20)ot.push(xRow('Maestro dell’Occulto','1 minuto di supplica: recuperi tutti gli slot del patto. Una volta per riposo lungo',xPill('x-eldm','','Recupera',((resInfo('eldmaster')||{left:0}).left)+'/1',1)));
+  return xCard('Azioni del warlock','Warlock',`CD ${dc} · ${sgn(pb()+cm)} per colpire`,'',[xSec('Azione',az),xSec('Azione bonus',bo),pt.length?`<h3 class="group-h" style="margin:4px 0 0">Dono del Patto</h3><div class="list">${pt.join('')}</div>`:'',sv.length?`<h3 class="group-h" style="margin:4px 0 0">Suppliche Occulte</h3><div class="list">${sv.join('')}</div>`:'',xSec('Altri usi',ot),xSec('Reazioni',re)]);
+}
+const classCards=()=>[barbCard(),bardCard(),clerCard(),druCard(),fightCard(),rogCard(),palCard(),rangCard(),sorcCard(),wizCard(),warCard()].join('');
 const CHLIST={man:[MANOVRE,l=>{const g=lvOf('Guerriero');return g>=15?9:g>=10?7:g>=7?5:3;},'Guerriero','Manovre','Ne conosci 3 al 3° livello e 2 in più al 7°, 10° e 15°.'],meta:[METAMAGIA,()=>{const s=lvOf('Stregone');return s>=17?4:s>=10?3:2;},'Stregone','Metamagia','Ne conosci 2 al 3° livello, una in più al 10° e al 17°.'],
+ pact:[PATTI,()=>1,'Warlock'],suppl:[SUPPL,()=>supplN(lvOf('Warlock')),'Warlock','Suppliche Occulte','Due al 2° livello, poi 3 al 5°, 4 al 7°, 5 al 9°, 6 al 12°, 7 al 15°, 8 al 18°. Quelle legate a un dono del patto richiedono quel dono.'],
  tot3:[TOTEM,()=>1,'Barbaro'],tot6:[TOTEM,()=>1,'Barbaro'],tot14:[TOTEM,()=>1,'Barbaro'],hunt3:[HUNT.hunt3,()=>1,'Ranger'],hunt7:[HUNT.hunt7,()=>1,'Ranger'],hunt11:[HUNT.hunt11,()=>1,'Ranger'],hunt15:[HUNT.hunt15,()=>1,'Ranger']};
 /* ───────── Monaco: Arti Marziali e ki (Manuale del Giocatore, cap. 3) ───────── */
 const monkL=()=>lvOf('Monaco');
@@ -2372,6 +2470,23 @@ document.addEventListener('click',e=>{
     case 'x-pts':spendPts('sorc',+D.n,D.l);break;
     case 'x-bend':spendPts('sorc',2,'Piegare la Fortuna',()=>{const r=d(4);showRoll({label:'Piegare la Fortuna · 2 punti',total:'±'+r,detail:`1d4: [${r}] da aggiungere o togliere al tiro`});});break;
     case 'x-surge':{const r=d(20);if(r===1&&S.res&&S.res.tides){S.res.tides=0;persist();render();}showRoll({label:'Impulso di Magia Selvaggia',total:r,detail:r===1?'Tira sulla tabella degli Impulsi di Magia Selvaggia. Onde di Caos si ricarica.':'Nessun impulso',tag:r===1?'Impulso!':''});break;}
+    case 'x-arcrec':{const r=resInfo('arc'),l=lvOf('Mago');if(!r||r.left<=0){toast('Recupero Arcano già usato oggi.');break;}const cap=Math.ceil(l/2),opts=S.slots.slice(0,5).map((x,i)=>x&&x.u>0?`<label class="sw-row"><span>Slot di ${i+1}° (${x.u} spes${x.u===1?'o':'i'})</span><input class="x-ar" type="number" min="0" max="${x.u}" value="0" data-l="${i}" style="width:64px;text-align:center"></label>`:'').join('');if(!opts){toast('Nessuno slot di 1°–5° livello speso.');break;}openSheet({title:'Recupero Arcano',body:`<p>Recupera slot per un totale di <b>${cap}</b> livelli, nessuno di 6° o superiore.</p>${opts}<button class="btn full" data-act="x-arcrec-go" data-c="${cap}">Recupera</button>`});break;}
+    case 'x-arcrec-go':{const cap=+D.c;let tot=0;const sel=[...root.querySelectorAll('.x-ar')].map(x=>{const n=Math.max(0,Math.min(+x.max,Math.round(+x.value||0)));tot+=n*(+x.dataset.l+1);return[+x.dataset.l,n];});if(!tot){toast('Scegli almeno uno slot.');break;}if(tot>cap){toast(`Hai scelto ${tot} livelli: il massimo è ${cap}.`);break;}sel.forEach(([i,n])=>{S.slots[i].u-=n;});S.res=S.res||{};S.res.arc=1;closeSheet();persist();render();toast(`Recupero Arcano: recuperati ${tot} livelli di slot.`);break;}
+    case 'x-ward-make':{const wm=2*lvOf('Mago')+abilMod('int');S.ward={hp:wm,made:1};persist();render();toast(`Interdizione Arcana creata: ${wm} PF.`);break;}
+    case 'x-ward':{const w=S.ward;if(!w)break;const wm=2*lvOf('Mago')+abilMod('int');w.hp=clamp(w.hp+ +D.d,0,wm);persist();render();break;}
+    case 'x-ward-up':{const w=S.ward;if(!w)break;const wm=2*lvOf('Mago')+abilMod('int'),b=w.hp;w.hp=Math.min(wm,w.hp+2*(+D.l));persist();render();toast(`Interdizione ricaricata: +${w.hp-b} (${w.hp}/${wm}).`);break;}
+    case 'x-ward-hit':openSheet({title:'Assorbi danni',body:`<div class="fields">${tf('wd-n','Danni subiti',AMT||'','number','min="0"')}<button class="btn full" data-act="x-ward-go">Applica</button></div>`});break;
+    case 'x-ward-go':{const w=S.ward;const n=Math.max(0,Math.round(+val('wd-n')||0));closeSheet();if(!w||!n)break;const a=Math.min(w.hp,n);w.hp-=a;persist();if(n-a>0)damage(n-a);else render();toast(`L’interdizione assorbe ${a}${n-a>0?`, tu subisci ${n-a}`:''}. Restano ${w.hp} PF all’interdizione.`);break;}
+    case 'x-portent-roll':{const l=lvOf('Mago');S.portent=Array.from({length:portentN(l)},()=>({v:d(20),u:0}));persist();render();toast('Portento: '+S.portent.map(x=>x.v).join(', '));break;}
+    case 'x-portent':{const P=S.portent||[],x=P[i];if(!x||x.u)break;x.u=1;persist();render();showRoll({label:'Portento',total:x.v,detail:'Il tiro vale '+x.v+' (prima di tirare, uno per turno)'});break;}
+    case 'x-overch':{const n=S.overch||0;openSheet({title:'Saturazione Magica',body:`<p>Scegli il livello dell’incantesimo (1°–5°): i suoi danni sono al massimo.${n?` Subisci ${1+n}d12 necrotici per livello, che ignorano resistenze e immunità.`:' Questa volta non subisci danni.'}</p><div class="chips">${[1,2,3,4,5].map(v=>`<button class="chip" data-act="x-overch-go" data-l="${v}">${v}° livello${n?' · '+(v*(1+n))+'d12':''}</button>`).join('')}</div>`});break;}
+    case 'x-overch-go':{const n=S.overch||0,v=+D.l;S.overch=n+1;closeSheet();persist();render();if(!n){toast('Saturazione Magica: danni massimi, nessun costo questa volta.');break;}const r=rollFormula((v*(1+n))+'d12');showRoll({label:'Saturazione Magica · danni a te',total:r.total,detail:r.detail+' necrotici (ignorano resistenze). Tocca Danno per toglierli',bad:true});break;}
+    case 'x-harvest':openSheet({title:'Raccolto Macabro',body:`<p>Livello dell’incantesimo che ha ucciso la creatura:</p><div class="chips">${[1,2,3,4,5,6,7,8,9].map(v=>`<button class="chip" data-act="x-harvest-go" data-l="${v}">${v}° · +${2*v}</button>`).join('')}</div><p class="sub">Se è una necromanzia: </p><div class="chips">${[1,2,3,4,5,6,7,8,9].map(v=>`<button class="chip" data-act="x-harvest-go" data-l="${v}" data-n="1">${v}° · +${3*v}</button>`).join('')}</div>`});break;
+    case 'x-harvest-go':closeSheet();heal((D.n?3:2)*(+D.l));break;
+    case 'x-eb':{const cm=abilMod('car'),beams=S.level>=17?4:S.level>=11?3:S.level>=5?2:1,ag=chosen('suppl',SUPPL).includes('agoniz'),f='1d10'+(ag&&cm?sgn(cm).replace('−','-'):''),hit=pb()+cm,out=[];for(let k=0;k<beams;k++){const r=d20m(),c=r===20,x=rollFormula(f,c||crit);out.push(`${k+1}°: ${r+hit} per colpire${c?' (critico)':r===1?' (fallimento)':''} → ${x?x.total:0} forza`);}showRoll({label:'Deflagrazione Occulta',total:beams+'×',detail:out.join(' · ')+` · colpire ${sgn(hit)}, danno ${f}`});break;}
+    case 'x-inv':{const x=SUPPL.find(y=>y[0]===D.k);if(!x)break;if(!S.pactSl||S.pactSl.n-S.pactSl.u<=0){toast('Serve uno slot del patto libero.');break;}useRes('inv_'+D.k,x[1],()=>{S.pactSl.u++;persist();render();toast(`${x[1]}: speso uno slot del patto (${S.pactSl.l}°).`);});break;}
+    case 'x-dob':{const n=Math.max(1,abilMod('car')+lvOf('Warlock'));if(n>(S.tmp||0)){S.tmp=n;persist();render();toast(`Benedizione dell’Oscuro: ${n} PF temporanei.`);}else toast(`Hai già ${S.tmp} PF temporanei (non si sommano).`);break;}
+    case 'x-eldm':useRes('eldmaster','Maestro dell’Occulto',()=>{if(S.pactSl)S.pactSl.u=0;persist();render();toast('Maestro dell’Occulto: slot del patto recuperati.');});break;
     case 'mk-disc-pick':discPanel();break;
     case 'mk-disc-t':{const l=monkL(),x=DISC.find(d=>d[0]===D.k);if(!x)break;S.disc=discKnown();const j=S.disc.indexOf(D.k);if(j>=0)S.disc.splice(j,1);else if(S.disc.length<discSlots(l)&&l>=x[2])S.disc.push(D.k);persist();render();const b=$('#sheet-body',root),sc=b?b.scrollTop:0;closeSheetInstant();discPanel();root.classList.add('open');const nb=$('#sheet-body',root);if(nb)nb.scrollTop=sc;break;}
     case 'mk-disc':discUse(D.k);break;
