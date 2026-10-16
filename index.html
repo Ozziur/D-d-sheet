@@ -1799,6 +1799,70 @@ function rangCard(){
 
 /* ── Stregone ── */
 const METAMAGIA=[['celato','Incantesimo Celato',0,'Senza componenti somatiche né verbali',1],['distante','Incantesimo Distante',0,'Gittata raddoppiata, o 9 m se era a contatto',1],['esteso','Incantesimo Esteso',0,'Durata raddoppiata (massimo 24 ore)',1],['intens','Incantesimo Intensificato',0,'Un bersaglio ha svantaggio al primo TS contro l’incantesimo',3],['potenz','Incantesimo Potenziato',0,'Ritiri fino a Carisma dadi di danno (anche insieme a un’altra metamagia)',1],['preciso','Incantesimo Preciso',0,'Fino a Carisma creature superano automaticamente il TS',1],['raddop','Incantesimo Raddoppiato',0,'Un secondo bersaglio per un incantesimo a bersaglio singolo; costa il livello dell’incantesimo (1 per un trucchetto)','liv.'],['rapido','Incantesimo Rapido',0,'Tempo di lancio da 1 azione a 1 azione bonus',2]];
+/* Impulsi di Magia Selvaggia (Manuale p. 112). [testo, dadi, etichetta dadi, effetto applicabile] */
+const WMS=[
+['Per il minuto successivo tiri su questa tabella all’inizio di ogni tuo turno (ignora questo risultato nei tiri successivi).'],
+['Per il minuto successivo vedi qualsiasi creatura invisibile, se hai linea di vista.'],
+['Un modron, controllato dal DM, compare entro 1,5 m da te e scompare dopo 1 minuto.'],
+['Lanci palla di fuoco di 3° livello centrata su te stesso.','8d6','danni da fuoco (TS Destrezza, metà)'],
+['Lanci dardo incantato di 5° livello.','7d4+7','danni da forza (7 dardi)'],
+['La tua altezza cambia di 2,5 cm per il risultato del d10: dispari ti rimpicciolisci, pari cresci.','1d10','× 2,5 cm'],
+['Lanci confusione centrato su te stesso.'],
+['Per il minuto successivo recuperi 5 PF all’inizio di ogni tuo turno.'],
+['Ti spunta una lunga barba di piume che resta finché non starnutisci; allora le piume esplodono via innocue.'],
+['Lanci unto centrato su te stesso.'],
+['Le creature hanno svantaggio al TS contro il prossimo incantesimo con TS che lanci entro 1 minuto.'],
+['La tua pelle diventa di un azzurro acceso. Rimuovi maledizione pone fine all’effetto.'],
+['Un occhio ti compare sulla fronte per 1 minuto: vantaggio alle prove di Saggezza (Percezione) basate sulla vista.'],
+['Per il minuto successivo i tuoi incantesimi da 1 azione si lanciano con 1 azione bonus.'],
+['Ti teletrasporti fino a 18 m in uno spazio libero che vedi.'],
+['Finisci sul Piano Astrale fino alla fine del tuo prossimo turno, poi torni dov’eri o nello spazio libero più vicino.'],
+['Massimizzi i danni del prossimo incantesimo che infligge danni lanciato entro 1 minuto.'],
+['La tua età cambia di tanti anni quanto il d10: dispari ringiovanisci (minimo 1 anno), pari invecchi.','1d10','anni'],
+['Compaiono flumph controllati dal DM entro 18 m, spaventati da te; svaniscono dopo 1 minuto.','1d6','flumph'],
+['Recuperi 2d10 punti ferita.','2d10','PF recuperati','heal'],
+['Diventi una pianta in vaso fino all’inizio del tuo prossimo turno: incapacitato e vulnerabile a tutti i danni. A 0 PF il vaso si rompe e torni normale.'],
+['Per il minuto successivo puoi teletrasportarti fino a 6 m come azione bonus in ognuno dei tuoi turni.'],
+['Lanci levitazione su te stesso.'],
+['Un unicorno controllato dal DM appare entro 1,5 m da te e scompare dopo 1 minuto.'],
+['Per il minuto successivo non puoi parlare: quando ci provi escono bolle rosa dalla bocca.'],
+['Uno scudo spettrale ti fluttua accanto per 1 minuto: +2 alla CA e immunità a dardo incantato.'],
+['Sei immune all’intossicazione alcolica per i prossimi giorni.','5d6','giorni'],
+['Perdi tutti i capelli; ricrescono in 24 ore.'],
+['Per il minuto successivo ogni oggetto infiammabile che tocchi, non indossato né trasportato da altri, prende fuoco.'],
+['Recuperi lo slot incantesimo speso di livello più basso.',null,null,'slot'],
+['Per il minuto successivo devi gridare quando parli.'],
+['Lanci nube di nebbia centrata su te stesso.'],
+['Fino a tre creature a tua scelta entro 9 m subiscono 4d10 danni da fulmine.','4d10','danni da fulmine'],
+['Sei spaventato dalla creatura più vicina fino alla fine del tuo prossimo turno.'],
+['Ogni creatura entro 9 m da te diventa invisibile per 1 minuto (finisce se attacca o lancia un incantesimo).'],
+['Ottieni resistenza a tutti i danni per il minuto successivo.'],
+['Una creatura a caso entro 18 m è avvelenata per qualche ora.','1d4','ore'],
+['Per il minuto successivo emetti luce intensa in un raggio di 9 m: chi termina il turno entro 1,5 m da te è accecato fino alla fine del suo turno successivo.'],
+['Lanci metamorfosi su te stesso: se fallisci il TS diventi una pecora per la durata.'],
+['Farfalle e petali illusori fluttuano entro 3 m da te per il minuto successivo.'],
+['Puoi fare subito un’azione aggiuntiva.'],
+['Ogni creatura entro 9 m da te subisce 1d10 danni necrotici; recuperi PF pari al totale dei danni inflitti.','1d10','danni necrotici a ciascuna creatura'],
+['Lanci immagine speculare.'],
+['Lanci volare su una creatura a caso entro 18 m.'],
+['Diventi invisibile per 1 minuto e gli altri non possono udirti; finisce se attacchi o lanci un incantesimo.'],
+['Se muori entro il minuto successivo torni subito in vita come con reincarnazione.'],
+['La tua taglia aumenta di una categoria per il minuto successivo.'],
+['Tu e le creature entro 9 m avete vulnerabilità ai danni perforanti per il minuto successivo.'],
+['Sei circondato da una debole musica eterea per il minuto successivo.'],
+['Recuperi tutti i punti stregoneria spesi.',null,null,'sorc']];
+const wmsRange=i=>{const a=2*i+1,b=2*i+2;return String(a).padStart(2,'0')+'–'+(b===100?'00':String(b).padStart(2,'0'));};
+function wmsOne(){const r=1+Math.floor(Math.random()*100),i=Math.ceil(r/2)-1,e=WMS[i];const x=e[1]?rollFormula(e[1]):null;return{r,i,e,x};}
+function wmsBlock(o,pick){
+  const{r,i,e,x}=o;
+  const act=e[3]==='heal'?`<button class="btn sm" data-act="x-wms-apply" data-k="heal" data-n="${x?x.total:0}">Applica +${x?x.total:0} PF</button>`:e[3]==='slot'?`<button class="btn sm" data-act="x-wms-apply" data-k="slot">Recupera lo slot</button>`:e[3]==='sorc'?`<button class="btn sm" data-act="x-wms-apply" data-k="sorc">Recupera i punti</button>`:'';
+  return `<div class="card" style="padding:12px 14px"><div class="row-h"><b>${pick?pick+' · ':''}d100: ${r===100?'00':r} <span class="sub">(${wmsRange(i)})</span></b></div><p style="margin:4px 0">${esc(e[0])}</p>${x?`<p class="sub" style="margin:0"><b style="font-size:16px;color:var(--on-surface)">${i===5?(x.total%2?'rimpicciolisci di ':'cresci di ')+String(x.total*2.5).replace('.',',')+' cm':i===17?(x.total%2?'ringiovanisci di ':'invecchi di ')+x.total+' ann'+(x.total===1?'o':'i'):x.total+' '+esc(e[2])}</b> · ${esc(x.detail)}</p>`:''}${act?`<div style="margin-top:8px">${act}</div>`:''}</div>`;
+}
+function wildSurge(){
+  const l=lvOf('Stregone'),two=l>=14,a=wmsOne(),b=two?wmsOne():null;
+  if(S.res&&S.res.tides){S.res.tides=0;persist();render();}
+  openSheet({title:'Impulso di Magia Selvaggia',body:`${two?'<p class="sub">Caos Controllato: tiri due volte e scegli quale effetto usare.</p>':''}${wmsBlock(a,two?'A':'')}${b?wmsBlock(b,'B'):''}<p class="sub">Onde di Caos è di nuovo disponibile.</p><button class="btn outline full" data-act="x-wms-again">Tira di nuovo</button>`});
+}
 const SLOTCOST=[2,3,5,6,7];
 function sorcCard(){
   const l=lvOf('Stregone');if(!l)return'';const sub=subOf('Stregone'),r=resInfo('sorc');
@@ -1811,7 +1875,7 @@ function sorcCard(){
   if(l>=3){const mx=l>=17?4:l>=10?3:2;mm.push(`<div class="row-h"><span class="sub">Una metamagia per incantesimo (Potenziato si somma)</span><button class="btn text sm" data-act="x-ch-pick" data-g="meta">Scegli (${chosen('meta',METAMAGIA).length}/${mx})</button></div>`);
     chosen('meta',METAMAGIA).forEach(k=>{const m=METAMAGIA.find(x=>x[0]===k);mm.push(xRow(esc(m[1]),esc(m[3]),xPill('x-meta',`data-k="${k}"`,'Usa',(m[4]==='liv.'?'liv.':m[4])+' pt',1)));});}
   if(sub==='Discendenza Draconica'){if(l>=6)ot.push(xRow('Affinità Elementale',`+${abilMod('car')} (Carisma) a un tiro di danni del tipo del tuo antenato; 1 punto per resistenza a quel tipo per 1 ora`,xPill('x-pts','data-n="1" data-l="Affinità Elementale"','Resist.','1 pt',1)));if(l>=14)bo.push(xRow('Ali di Drago','Azione bonus: ali con velocità di volare pari alla tua velocità',''));if(l>=18)az.push(xRow('Presenza Draconica','Azione: aura di 18 m per 1 minuto (concentrazione); chi inizia il turno dentro fa un TS Saggezza o è affascinato o spaventato',xPill('x-pts','data-n="5" data-l="Presenza Draconica"','Usa','5 pt',1)));}
-  if(sub==='Magia Selvaggia'){ot.push(xRow('Impulso di Magia Selvaggia','Dopo un incantesimo di 1° livello o più il DM può farti tirare un d20: con 1 tiri sulla tabella degli Impulsi',xPill('x-surge','','Tira','d20',1)));ot.push(xRow('Onde di Caos','Vantaggio a un tiro per colpire, una prova o un TS. Si ricarica con riposo lungo o dopo un Impulso',xUse('tides')));if(l>=6)re.push(xRow('Piegare la Fortuna','Reazione: 2 punti per aggiungere o togliere 1d4 al tiro di un’altra creatura',xPill('x-bend','','Usa','2 pt · 1d4',1)));if(l>=14)ot.push(xRow('Caos Controllato','Sulla tabella degli Impulsi tiri due volte e scegli',''));if(l>=18)ot.push(xRow('Bombardamento Magico','Una volta per turno, se un dado di danno fa il massimo lo ritiri e lo aggiungi',''));}
+  if(sub==='Magia Selvaggia'){ot.push(xRow('Impulso di Magia Selvaggia','Dopo un incantesimo di 1° livello o più il DM può farti tirare un d20: con 1 tiri sulla tabella degli Impulsi',xPill('x-surge','','Tira','d20',1)+xPill('x-wms','','Tabella','d100',0)));ot.push(xRow('Onde di Caos','Vantaggio a un tiro per colpire, una prova o un TS. Si ricarica con riposo lungo o dopo un Impulso',xUse('tides')));if(l>=6)re.push(xRow('Piegare la Fortuna','Reazione: 2 punti per aggiungere o togliere 1d4 al tiro di un’altra creatura',xPill('x-bend','','Usa','2 pt · 1d4',1)));if(l>=14)ot.push(xRow('Caos Controllato','Sulla tabella degli Impulsi tiri due volte e scegli',''));if(l>=18)ot.push(xRow('Bombardamento Magico','Una volta per turno, se un dado di danno fa il massimo lo ritiri e lo aggiungi',''));}
   if(l>=20)ot.push(xRow('Ripristino Stregonesco','Recuperi 4 punti stregoneria a ogni riposo breve',''));
   return xCard('Azioni dello stregone','Stregone',`Livello ${l}`,head,[xSec('Fonte di Magia',fm),mm.length?`<h3 class="group-h" style="margin:4px 0 0">Metamagia</h3><div class="list">${mm.join('')}</div>`:'',xSec('Azione',az),xSec('Azione bonus',bo),xSec('Altri usi',ot),xSec('Reazioni',re)]);
 }
@@ -2562,7 +2626,10 @@ document.addEventListener('click',e=>{
     case 'x-pts-go':closeSheet();spendPts('sorc',+D.n,D.l);break;
     case 'x-pts':spendPts('sorc',+D.n,D.l);break;
     case 'x-bend':spendPts('sorc',2,'Piegare la Fortuna',()=>{const r=d(4);showRoll({label:'Piegare la Fortuna · 2 punti',total:'±'+r,detail:`1d4: [${r}] da aggiungere o togliere al tiro`});});break;
-    case 'x-surge':{const r=d(20);if(r===1&&S.res&&S.res.tides){S.res.tides=0;persist();render();}showRoll({label:'Impulso di Magia Selvaggia',total:r,detail:r===1?'Tira sulla tabella degli Impulsi di Magia Selvaggia. Onde di Caos si ricarica.':'Nessun impulso',tag:r===1?'Impulso!':''});break;}
+    case 'x-surge':{const r=d(20);if(r===1){wildSurge();break;}showRoll({label:'Impulso di Magia Selvaggia',total:r,detail:'d20: '+r+' · nessun impulso (serve 1)'});break;}
+    case 'x-wms':wildSurge();break;
+    case 'x-wms-again':closeSheetInstant();wildSurge();root.classList.add('open');break;
+    case 'x-wms-apply':{const k=D.k;if(k==='heal'){closeSheet();heal(+D.n);}else if(k==='sorc'){S.res=S.res||{};S.res.sorc=0;closeSheet();persist();render();toast('Punti stregoneria recuperati.');}else if(k==='slot'){const i2=S.slots.findIndex(x=>x&&x.u>0);closeSheet();if(i2<0){toast('Nessuno slot speso.');break;}S.slots[i2].u--;persist();render();toast(`Recuperato uno slot di ${i2+1}° livello.`);}break;}
     case 'x-arcrec':{const r=resInfo('arc'),l=lvOf('Mago');if(!r||r.left<=0){toast('Recupero Arcano già usato oggi.');break;}const cap=Math.ceil(l/2),opts=S.slots.slice(0,5).map((x,i)=>x&&x.u>0?`<label class="sw-row"><span>Slot di ${i+1}° (${x.u} spes${x.u===1?'o':'i'})</span><input class="x-ar" type="number" min="0" max="${x.u}" value="0" data-l="${i}" style="width:64px;text-align:center"></label>`:'').join('');if(!opts){toast('Nessuno slot di 1°–5° livello speso.');break;}openSheet({title:'Recupero Arcano',body:`<p>Recupera slot per un totale di <b>${cap}</b> livelli, nessuno di 6° o superiore.</p>${opts}<button class="btn full" data-act="x-arcrec-go" data-c="${cap}">Recupera</button>`});break;}
     case 'x-arcrec-go':{const cap=+D.c;let tot=0;const sel=[...root.querySelectorAll('.x-ar')].map(x=>{const n=Math.max(0,Math.min(+x.max,Math.round(+x.value||0)));tot+=n*(+x.dataset.l+1);return[+x.dataset.l,n];});if(!tot){toast('Scegli almeno uno slot.');break;}if(tot>cap){toast(`Hai scelto ${tot} livelli: il massimo è ${cap}.`);break;}sel.forEach(([i,n])=>{S.slots[i].u-=n;});S.res=S.res||{};S.res.arc=1;closeSheet();persist();render();toast(`Recupero Arcano: recuperati ${tot} livelli di slot.`);break;}
     case 'x-ward-make':{const wm=2*lvOf('Mago')+abilMod('int');S.ward={hp:wm,made:1};persist();render();toast(`Interdizione Arcana creata: ${wm} PF.`);break;}
