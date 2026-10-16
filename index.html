@@ -479,6 +479,7 @@ body{font:400 17px/22px var(--serif)}
   <div class="menu" id="menu" role="menu" hidden>
     <button role="menuitem" data-act="m-chars">Personaggi</button>
     <button role="menuitem" data-act="m-dice">Tira dadi</button>
+    <button role="menuitem" data-act="m-ini">Iniziativa</button>
     <button role="menuitem" data-act="m-theme">Tema e colori</button>
     <button role="menuitem" data-act="m-io">Esporta o importa</button>
     <button role="menuitem" data-act="m-new">Nuovo personaggio</button>
@@ -2442,6 +2443,110 @@ function spellInfo(i){
     <div class="row2"><button class="btn outline" data-act="spell-edit" data-i="${i}">Modifica</button>${s.level>0?`<button class="btn" data-act="cast-close" data-i="${i}">Lancia</button>`:'<span></span>'}</div>`});
 }
 /* ── Menu: dadi, tema, import/export, nuovo ── */
+/* ───────── Iniziativa: utility del tavolo, indipendente dalla scheda ───────── */
+const KEYI='dnd5e-init-v1';
+let INI=(()=>{let o=null;try{o=JSON.parse(localStorage.getItem(KEYI));}catch(e){}return Object.assign({list:[],round:0,cur:null,amt:5},o||{});})();
+const iniSave=()=>{try{localStorage.setItem(KEYI,JSON.stringify(INI));}catch(e){}};
+const iniFind=id=>INI.list.find(x=>x.id===id);
+const iniPg=c=>c&&c.pg&&R.list[c.pg]?R.list[c.pg]:null;
+const iniHp=c=>{const p=iniPg(c);return p?p.hp:c.hp;};
+const iniMax=c=>{const p=iniPg(c);return p?p.hpMax:c.max;};
+const iniDown=c=>c.foe&&iniMax(c)>0&&iniHp(c)<=0;
+function iniSort(){INI.list.sort((a,b)=>((b.init??-99)-(a.init??-99))||((b.mod||0)-(a.mod||0))||String(a.name).localeCompare(String(b.name)));}
+function pgInit(c){return abilMod2(c,'des')+(+c.initB||0)+((c.feats||[]).includes('Allerta')?5:0);}
+function abilMod2(c,k){return Math.floor(((c.abilities&&c.abilities[k])||10)/2)-5;}
+function iniBody(){
+  iniSort();
+  const L=INI.list,cur=iniFind(INI.cur),started=INI.round>0;
+  const rows=L.map(c=>{
+    const on=started&&c.id===INI.cur,dn=iniDown(c),hp=iniHp(c),mx=iniMax(c),low=mx&&hp<=Math.floor(mx/4);
+    const info=[mx?`PF <span style="font-style:normal;font-weight:700;color:${low?'var(--error)':'var(--on-surface)'}">${hp}</span>/${mx}`:'',c.ac?`CA ${c.ac}`:'',c.pg?'personaggio':c.foe?'nemico':'alleato'].filter(Boolean).join(' · ');
+    return `<div class="item" style="padding-left:8px;${on?'box-shadow:inset 4px 0 0 var(--primary);background:var(--primary-container)':''}${dn?';opacity:.55':''}">
+      <button class="pill${on?' tonal':''}" style="min-width:56px" data-act="ini-init" data-id="${c.id}" aria-label="Iniziativa di ${esc(c.name)}"><span class="pl">Iniz.</span><span class="pv">${c.init??'—'}</span></button>
+      <button class="row-main" data-act="ini-edit" data-id="${c.id}"><b style="${dn?'text-decoration:line-through':''}">${on?'▶ ':''}${esc(c.name)}</b><small style="white-space:normal">${info}${(c.conds||[]).length?' · '+esc(c.conds.join(', ')):''}${dn?' · a terra':''}</small></button>
+      ${mx?`<div class="qty"><button data-act="ini-hp" data-id="${c.id}" data-d="-1" aria-label="Danno a ${esc(c.name)}">${ic('minus',20)}</button><button data-act="ini-hp" data-id="${c.id}" data-d="1" aria-label="Cura ${esc(c.name)}">${ic('add',20)}</button></div>`:''}
+    </div>`;}).join('');
+  return `<div class="row-h"><div><b style="font-size:18px">${started?'Round '+INI.round:'Prima del combattimento'}</b><br><span class="sub">${started&&cur?'Turno di '+esc(cur.name):L.length?'Tocca Inizia: chi non ha un’iniziativa la tira da sé':'Aggiungi chi partecipa allo scontro'}</span></div>
+</div>
+    ${started?`<div style="display:grid;grid-template-columns:1fr 2fr;gap:8px"><button class="btn outline" data-act="ini-step" data-d="-1">Indietro</button><button class="btn" data-act="ini-step" data-d="1">Prossimo turno</button></div>`:`<button class="btn full" data-act="ini-start"${L.length?'':' disabled style="opacity:.5"'}>Inizia il combattimento</button>`}
+    ${L.length?`<div class="row-h"><span class="sub">Quantità per − (danno) e + (cura)</span><div class="stepper" style="height:40px"><button style="height:40px" data-act="ini-amt" data-d="-1" aria-label="Diminuisci">${ic('minus',18)}</button><input id="ini-amt" type="number" inputmode="numeric" min="1" value="${INI.amt}" aria-label="Quantità" style="height:40px"><button style="height:40px" data-act="ini-amt" data-d="1" aria-label="Aumenta">${ic('add',18)}</button></div></div>`:''}
+    <div class="list">${rows||'<div class="empty">Nessun combattente.</div>'}</div>
+    <div class="row2"><button class="btn tonal" data-act="ini-add">${ic('add',18)}Nemico o PNG</button><button class="btn tonal" data-act="ini-pgs">${ic('add',18)}Personaggi</button></div>
+    ${L.length?`<div class="row2"><button class="btn outline" data-act="ini-new">Nuovo scontro</button><button class="btn outline" data-act="ini-clear">Svuota</button></div>`:''}
+    <p class="sub">Tocca il numero per cambiare l’iniziativa, il nome per PF, CA e condizioni. I PF dei personaggi sono quelli delle loro schede. Nuovo scontro tiene i personaggi e toglie gli altri.</p>`;
+}
+const iniShown=()=>root.classList.contains('open')&&!!root.querySelector('.sheet[data-ini]');
+let iniScroll=0;
+function iniOpen(){openSheet({title:'Iniziativa',body:iniBody()});const sh=root.querySelector('.sheet');if(sh)sh.dataset.ini='1';const nb=$('#sheet-body',root);if(nb){nb.scrollTop=iniScroll;nb.addEventListener('scroll',()=>{iniScroll=nb.scrollTop;});}}
+function iniRefresh(){iniSave();if(iniShown()){const b=$('#sheet-body',root),sc=b.scrollTop;b.innerHTML=iniBody();b.scrollTop=sc;}}
+function iniRoll(c){const r=d(20);c.init=r+(+c.mod||0);return r;}
+function iniStep(dir){
+  iniSort();const all=INI.list;if(!all.some(c=>!iniDown(c))){toast('Nessun combattente in piedi.');return;}
+  let i=all.findIndex(c=>c.id===INI.cur);if(i<0){i=dir>0?-1:0;}
+  for(let n=0;n<all.length;n++){
+    i+=dir;
+    if(i>=all.length){i=0;INI.round++;}
+    if(i<0){if(INI.round>1){INI.round--;i=all.length-1;}else{i=all.findIndex(c=>!iniDown(c));break;}}
+    if(!iniDown(all[i]))break;
+  }
+  INI.cur=all[i].id;iniRefresh();
+}
+function iniStart(){
+  const rolled=[];INI.list.forEach(c=>{if(c.init==null){iniRoll(c);rolled.push(c.name+' '+c.init);}});
+  iniSort();INI.round=1;const f=INI.list.find(c=>!iniDown(c));INI.cur=f?f.id:null;iniRefresh();
+  toast(rolled.length?'Tirate: '+rolled.join(' · '):'Il combattimento comincia.');
+}
+function iniAddForm(){
+  
+  openSheet({title:'Aggiungi nemico o PNG',saveLabel:'Aggiungi',body:`<div class="fields">${tf('ia-n','Nome','')}<div class="row2">${tf('ia-q','Quanti',1,'number','min="1" max="20"')}${tf('ia-m','Mod. iniziativa',0,'number')}</div>
+    <div class="row2">${tf('ia-hp','PF (numero o dadi, es. 2d6+2)','')}${tf('ia-ac','CA','','number')}</div>
+    <div class="seg" role="group" aria-label="Schieramento"><button data-act="ia-side" data-v="1" aria-pressed="true">Nemico</button><button data-act="ia-side" data-v="0" aria-pressed="false">Alleato</button></div>
+    <label class="sw-row"><span>Tira subito l’iniziativa</span><span class="sw"><input type="checkbox" id="ia-roll" checked><i></i></span></label>
+    <p class="sub">Con più copie i nomi diventano “Goblin 1”, “Goblin 2”… e i PF scritti in dadi si tirano per ognuna.</p>
+    <button class="btn text full" data-act="ini-open">Torna all’elenco</button></div>`,
+   save(){
+    const n=val('ia-n').trim()||'Nemico',q=Math.max(1,Math.min(20,Math.round(+val('ia-q')||1))),m=Math.round(+val('ia-m')||0),hp=val('ia-hp').trim(),ac=Math.round(+val('ia-ac')||0)||'',foe=!!$('[data-act="ia-side"][data-v="1"]',root).getAttribute('aria-pressed').match('true'),roll=$('#ia-roll',root).checked;
+    const out=[];
+    for(let k=0;k<q;k++){let h=0;if(/d/i.test(hp)){const r=rollFormula(hp);h=r?Math.max(1,r.total):0;}else h=Math.max(0,Math.round(+hp||0));
+      const c={id:uid(),name:q>1?`${n} ${k+1}`:n,mod:m,init:null,hp:h,max:h,ac,foe,conds:[]};if(roll)iniRoll(c);INI.list.push(c);out.push(c);}
+    iniSave();iniOpen();toast(out.length>1?`Aggiunti ${out.length}: ${out.map(c=>c.init??'—').join(', ')}`:`Aggiunto ${out[0].name}${out[0].init!=null?' · iniziativa '+out[0].init:''}`);return false;}});
+}
+function iniPgsForm(){
+  
+  const ids=Object.keys(R.list);
+  openSheet({title:'Aggiungi personaggi',saveLabel:'Aggiungi',body:`<p class="sub">Scegli chi partecipa. Lascia vuota l’iniziativa per tirarla con il bonus della scheda, oppure scrivi il risultato del giocatore.</p><div class="fields">${ids.map(id=>{const c=R.list[id],inl=INI.list.some(x=>x.pg===id);return `<div class="item" style="padding:8px 12px"><label class="sw-row" style="flex:1"><span><b>${esc(c.name||'Senza nome')}</b><br><span class="sub">Iniziativa ${sgn(pgInit(c))} · PF ${c.hp}/${c.hpMax}${inl?' · già in lista':''}</span></span><span class="sw"><input type="checkbox" class="ip-on" data-id="${id}"${inl?'':' checked'}><i></i></span></label><input class="ip-v" data-id="${id}" type="number" inputmode="numeric" placeholder="tira" aria-label="Iniziativa di ${esc(c.name)}" style="width:64px;height:44px;text-align:center;border:1px solid var(--outline-variant);background:var(--sc-highest);color:var(--on-surface)"></div>`;}).join('')}
+    <button class="btn text full" data-act="ini-open">Torna all’elenco</button></div>`,
+   save(){
+    const msg=[];
+    root.querySelectorAll('.ip-on').forEach(cb=>{if(!cb.checked)return;const id=cb.dataset.id,c=R.list[id],v=root.querySelector(`.ip-v[data-id="${id}"]`).value;
+      let x=INI.list.find(y=>y.pg===id);if(!x){x={id:uid(),pg:id,name:c.name||'Personaggio',foe:false,conds:[]};INI.list.push(x);}
+      x.name=c.name||x.name;x.mod=pgInit(c);x.ac=id===R.act?acNow():(c.ac||'');
+      if(v!==''){x.init=Math.round(+v);msg.push(`${x.name} ${x.init}`);}else{const r=iniRoll(x);msg.push(`${x.name} ${x.init} (d20 ${r})`);}});
+    iniSave();iniOpen();if(msg.length)toast(msg.join(' · '));return false;}});
+}
+function iniEdit(id){
+  const c=iniFind(id);if(!c)return;const p=iniPg(c);
+  openSheet({title:c.name,saveLabel:'Salva',body:`<div class="fields">${p?'':tf('ie-n','Nome',c.name)}<div class="row3">${tf('ie-i','Iniziativa',c.init??'','number')}${tf('ie-m','Mod. iniz.',c.mod||0,'number')}${tf('ie-ac','CA',c.ac||'','number')}</div>
+    ${p?`<p class="sub">I PF di ${esc(c.name)} sono quelli della sua scheda: ${p.hp}/${p.hpMax}.</p>`:`<div class="row2">${tf('ie-hp','PF attuali',c.hp||0,'number')}${tf('ie-mx','PF massimi',c.max||0,'number')}</div>`}
+    <h3 class="group-h" style="margin:4px 0 0">Condizioni</h3><div class="chips">${CONDS.map(x=>`<button class="chip" data-act="ie-cond" data-c="${esc(x)}" aria-pressed="${(c.conds||[]).includes(x)}">${(c.conds||[]).includes(x)?ic('check',16):''}${x}</button>`).join('')}</div>
+    <button class="btn outline full" data-act="ie-roll" data-id="${c.id}">Tira di nuovo l’iniziativa (d20 ${sgn(+c.mod||0)})</button>
+    <button class="btn text full" data-act="ini-open">Torna all’elenco</button></div>`,
+   del(){INI.list=INI.list.filter(x=>x.id!==id);if(INI.cur===id)INI.cur=null;iniSave();setTimeout(iniOpen,320);},
+   save(){
+    if(!p)c.name=val('ie-n').trim()||c.name;const iv=val('ie-i');c.init=iv===''?null:Math.round(+iv);c.mod=Math.round(+val('ie-m')||0);c.ac=Math.round(+val('ie-ac')||0)||'';
+    if(!p){c.max=Math.max(0,Math.round(+val('ie-mx')||0));c.hp=Math.max(0,Math.min(c.max||9999,Math.round(+val('ie-hp')||0)));}
+    c.conds=[...root.querySelectorAll('[data-act="ie-cond"][aria-pressed="true"]')].map(b=>b.dataset.c);
+    iniSave();iniOpen();return false;}});
+}
+function iniHpChange(id,dir){
+  const c=iniFind(id);if(!c)return;const n=Math.max(1,Math.round(+INI.amt||1)),p=iniPg(c);
+  if(p){
+    if(dir<0){let left=n;if(p.tmp){const a=Math.min(p.tmp,left);p.tmp-=a;left-=a;}p.hp=Math.max(0,p.hp-left);}else{const was=p.hp;p.hp=Math.min(p.hpMax,p.hp+n);if(was===0&&p.hp>0)p.death={s:0,f:0};}
+    persist();render();
+  }else{c.hp=dir<0?Math.max(0,c.hp-n):Math.min(c.max,c.hp+n);}
+  toast(`${c.name}: ${dir<0?'−':'+'}${n} PF → ${iniHp(c)}/${iniMax(c)}${iniDown(c)?' · a terra':''}`);
+  iniRefresh();
+}
 function dicePanel(){
   openSheet({title:'Tira dadi',body:`<div class="dice-grid">${[4,6,8,10,12,20,100].map(n=>`<button data-act="die" data-n="${n}">d${n}</button>`).join('')}</div>
     <p class="sub">Il risultato compare in basso. Per d20 vale la modalità Normale, Vantaggio o Svantaggio in alto.</p>`});
@@ -2544,6 +2649,21 @@ document.addEventListener('click',e=>{
     case 'cycle-mode':S.rollMode=S.rollMode==='n'?'a':S.rollMode==='a'?'d':'n';persist();renderTop();break;
     case 'edit-profile':editProfile();break;
     case 'm-dice':dicePanel();break;
+    case 'm-ini':iniOpen();break;
+    case 'ini-open':iniOpen();break;
+    case 'ini-add':iniAddForm();break;
+    case 'ini-pgs':iniPgsForm();break;
+    case 'ini-edit':iniEdit(D.id);break;
+    case 'ini-init':{const c=iniFind(D.id);if(!c)break;iniEdit(c.id);setTimeout(()=>{const x=$('#ie-i',root);if(x){x.focus();x.select();}},320);break;}
+    case 'ini-hp':iniHpChange(D.id,+D.d);break;
+    case 'ini-amt':{INI.amt=Math.max(1,(Math.round(+INI.amt)||1)+ +D.d);const x=$('#ini-amt',root);if(x)x.value=INI.amt;iniSave();break;}
+    case 'ini-start':iniStart();break;
+    case 'ini-step':iniStep(+D.d);break;
+    case 'ini-new':{INI.list=INI.list.filter(c=>c.pg);INI.list.forEach(c=>{c.init=null;c.conds=[];});INI.round=0;INI.cur=null;iniRefresh();toast('Nuovo scontro: restano i personaggi, iniziativa da tirare.');break;}
+    case 'ini-clear':{INI={list:[],round:0,cur:null,amt:INI.amt};iniRefresh();break;}
+    case 'ia-side':el.parentElement.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===el)));break;
+    case 'ie-cond':{const on=el.getAttribute('aria-pressed')!=='true';el.setAttribute('aria-pressed',String(on));el.innerHTML=(on?ic('check',16):'')+esc(D.c);break;}
+    case 'ie-roll':{const c=iniFind(D.id);if(!c)break;const m=Math.round(+val('ie-m')||0),r=d(20);$('#ie-i',root).value=r+m;showRoll({label:'Iniziativa di '+c.name,total:r+m,detail:`d20: ${r} ${sgn(m)}`});break;}
     case 'm-theme':themePanel();break;
     case 'm-io':ioPanel();break;
     case 'm-new':wizard();break;
@@ -2724,6 +2844,7 @@ document.addEventListener('keydown',e=>{
   if((e.key==='Enter'||e.key===' ')&&e.target.matches('[role="button"][data-act]')){e.preventDefault();e.target.click();}
 });
 document.addEventListener('input',e=>{
+  if(e.target.id==='ini-amt'){INI.amt=Math.max(1,Math.round(+e.target.value)||1);iniSave();return;}
   const t=e.target;
   if(t.id==='pk-q'){drawPick();}
   else if(t.id==='amt'){AMT=Math.max(0,parseInt(t.value)||0);}
