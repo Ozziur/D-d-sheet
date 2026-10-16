@@ -538,18 +538,18 @@ function equipped(c){return S.items.filter(i=>i.eq&&i.cat===c);}
 function acInfo(){
   const ar=equipped('armatura')[0],sh=equipped('scudo')[0];
   if(!ar&&!sh)return null;
-  const dx=abilMod('des'),parts=[];let base;
-  if(ar){base=ar.ac+(ar.cap===0?0:Math.min(dx,ar.cap==null?99:ar.cap));parts.push(ar.name);}
+  const dx=abilMod('des'),parts=[],det=[];let base;
+  if(ar){const dm=ar.cap===0?0:Math.min(dx,ar.cap==null?99:ar.cap);base=ar.ac+dm;parts.push(ar.name);det.push([ar.name,ar.ac]);det.push(ar.cap===0?['Destrezza (non si applica)',0]:['Destrezza'+(ar.cap!=null&&dx>ar.cap?' (limite +'+ar.cap+')':''),dm]);}
   else{
-    base=10+dx;const cls=S.classes.map(c=>c.n);
-    if(cls.includes('Barbaro'))base=Math.max(base,10+dx+abilMod('cos'));
-    if(cls.includes('Monaco')&&!sh)base=Math.max(base,10+dx+abilMod('sag'));
-    if(S.classes.some(c=>c.n==='Stregone'&&c.sub==='Discendenza Draconica'))base=Math.max(base,13+dx);
-    parts.push('senza armatura');
+    base=10+dx;const cls=S.classes.map(c=>c.n);let dd=[['Base',10],['Destrezza',dx]];
+    if(cls.includes('Barbaro')&&10+dx+abilMod('cos')>base){base=10+dx+abilMod('cos');dd=[['Base',10],['Destrezza',dx],['Costituzione (Difesa Senza Armatura)',abilMod('cos')]];}
+    if(cls.includes('Monaco')&&!sh&&10+dx+abilMod('sag')>base){base=10+dx+abilMod('sag');dd=[['Base',10],['Destrezza',dx],['Saggezza (Difesa Senza Armatura)',abilMod('sag')]];}
+    if(S.classes.some(c=>c.n==='Stregone'&&c.sub==='Discendenza Draconica')&&13+dx>base){base=13+dx;dd=[['Resilienza Draconica',13],['Destrezza',dx]];}
+    dd.forEach(x=>det.push(x));parts.push('senza armatura');
   }
-  if(sh){base+=sh.ac||2;parts.push(sh.name);}
-  base+=+S.acBonus||0;
-  return{ac:base,parts};
+  if(sh){base+=sh.ac||2;parts.push(sh.name);det.push([sh.name,sh.ac||2]);}
+  if(+S.acBonus){base+=+S.acBonus;det.push(['Bonus extra',+S.acBonus]);}
+  return{ac:base,parts,det};
 }
 const acNow=()=>{const a=acInfo();return a?a.ac:S.ac;};
 const stealthDis=()=>equipped('armatura').some(a=>a.st);
@@ -1116,11 +1116,32 @@ function showRoll({label,total,detail,tag,bad}){
   el.innerHTML=`<div class="toast"><span class="tot">${total}</span><div class="tx"><b>${esc(label)}</b><span>${esc(detail)}</span></div>${tag?`<span class="tag${bad?' bad':''}">${tag}</span>`:''}</div>`;
   el.classList.add('show');clearTimeout(snackT);snackT=setTimeout(()=>el.classList.remove('show'),4200);
 }
-function rollD20(label,bonus){
+
+function expl(parts){return parts.filter((x,i)=>x[1]!==0||i===0).map((x,i)=>i===0?x[0]+' '+sgn(x[1]):x[0]+' '+sgn(x[1])).join(' · ');}
+function profPart(m){return m?[m>1?'Maestria (doppia competenza)':'Competenza',pb()*m]:null;}
+function skillParts(i){const[n,k]=SKILLS[i],m=S.skills[n]||0;return[[AB[k][1],abilMod(k)],profPart(m)].filter(Boolean);}
+function saveParts(k){return[[AB[k][1],abilMod(k)],S.saves[k]?['Competenza',pb()]:null].filter(Boolean);}
+function initParts(){return[['Destrezza',abilMod('des')],S.initB?['Bonus extra',S.initB]:null,S.feats.includes('Allerta')?['Allerta',5]:null].filter(Boolean);}
+function atkParts(a){return[a.ab&&AB[a.ab]?[AB[a.ab][1],abilMod(a.ab)]:null,a.prof?['Competenza',pb()]:null,+a.bonus?['Bonus magico',+a.bonus]:null].filter(Boolean);}
+function calcSheet(){
+  const r=(t,v,d)=>`<div class="card" style="padding:12px 14px"><div class="row-h"><b>${t}</b><b style="font-size:20px;font-family:var(--serif)">${v}</b></div><p class="sub" style="margin:2px 0 0">${d}</p></div>`;
+  const ai=acInfo(),pp=10+skillB(skillI('Percezione')),cc=castCls(),ab=S.spellAb;
+  const rows=[];
+  rows.push(r('Bonus di competenza','+'+pb(),`Dipende dal livello totale (${S.level}): +2 fino al 4°, +3 dal 5°, +4 dal 9°, +5 dal 13°, +6 dal 17°.`));
+  rows.push(r('Classe Armatura',acNow(),ai?ai.det.map((x,i)=>x[0]+' '+(i===0?x[1]:sgn(x[1]))).join(', ')+' = '+ai.ac:'Valore impostato a mano. Indossando un’armatura o uno scudo nello Zaino viene calcolata da sola.'));
+  rows.push(r('Iniziativa',sgn(initTot()),expl(initParts())+' = '+sgn(initTot())));
+  rows.push(r('Velocità',fmt(spd())+' m',`Base ${fmt(S.speed)} m${S.feats.includes('Mobile')?' + 3 m (Mobile)':''}${strShort()?' − 3 m (Forza '+strShort().str+' richiesta dall’armatura)':''}.`));
+  rows.push(r('Percezione passiva',pp,`10 + bonus di Percezione (${expl(skillParts(skillI('Percezione')))}) = ${pp}`));
+  rows.push(r('Carico massimo',fmt(S.abilities.for*7.5)+' kg',`Punteggio di Forza ${S.abilities.for} × 7,5 kg. Trasporti ${fmt(totalW())} kg.`));
+  if(ab)rows.push(r('Incantesimi',`CD ${8+pb()+abilMod(ab)}`,`CD = 8 + competenza ${pb()} + ${AB[ab][1]} ${sgn(abilMod(ab))} = ${8+pb()+abilMod(ab)}. Bonus per colpire con incantesimi: competenza ${sgn(pb())} + ${AB[ab][1]} ${sgn(abilMod(ab))} = ${sgn(pb()+abilMod(ab))}.`));
+  rows.push(r('Dadi Vita',hdLabel(),'Un dado per livello. Con un riposo breve li spendi per curarti: tira il dado e aggiungi il modificatore di Costituzione ('+sgn(abilMod('cos'))+').'));
+  openSheet({title:'Come si calcolano i valori',body:`<div class="fields">${rows.join('')}</div><p class="sub">Tocca un’abilità, un tiro salvezza o un attacco per vedere la somma nel risultato del tiro.</p>`});
+}
+function rollD20(label,bonus,parts){
   const m=S.rollMode,a=d(20),b=m==='n'?null:d(20);
   const use=m==='a'?Math.max(a,b):m==='d'?Math.min(a,b):a;
   const dd=b===null?`d20: ${a}`:`d20: ${a}, ${b} → ${use} (${m==='a'?'vantaggio':'svantaggio'})`;
-  showRoll({label,total:use+bonus,detail:`${dd} ${sgn(bonus)}`,tag:use===20?'Critico!':use===1?'Fallimento':'',bad:use===1});
+  showRoll({label,total:use+bonus,detail:`${dd} ${sgn(bonus)}${parts&&parts.length?' ('+expl(parts)+')':''}`,tag:use===20?'Critico!':use===1?'Fallimento':'',bad:use===1});
   return use;
 }
 function rollFormula(f,double){
@@ -1191,7 +1212,8 @@ function viewScheda(){
     <div class="row-h"><div><h2 class="h">Dadi Vita</h2><span class="sub">${hdLabel()}</span></div>
       <button class="btn tonal sm" data-act="spend-hd"${hdLeft()?'':' disabled style="opacity:.5"'}>Spendi un dado</button></div>
     <div class="row2" style="margin-top:12px"><button class="btn outline" data-act="short-rest">Riposo breve</button><button class="btn outline" data-act="long-rest">Riposo lungo</button></div>
-  </section>`;
+  </section>
+  <button class="btn text full" data-act="calc-info">Come si calcolano i valori</button>`;
 }
 
 function profMigrate(c){
@@ -1241,7 +1263,7 @@ function viewAzioni(){
     <button class="chip warn" data-act="tog-crit" aria-pressed="${crit}">${crit?ic('check',16):''}Danno critico</button></div>
   ${S.attacks.length?`<div class="list">${S.attacks.map((a,i)=>`
     <div class="item">
-      <button class="row-main" data-act="edit-atk" data-i="${i}"><b>${esc(a.name||'Attacco')}</b><small>${a.ab?AB[a.ab][2]:'—'}${a.prof?' · competente':''}${a.type?' · '+esc(a.type):''}</small></button>
+      <button class="row-main" data-act="edit-atk" data-i="${i}"><b>${esc(a.name||'Attacco')}</b><small>${atkParts(a).length?esc(expl(atkParts(a))):'—'}${a.type?' · '+esc(a.type):''}</small></button>
       <button class="pill tonal" data-act="roll-atk" data-i="${i}" aria-label="Tira per colpire"><span class="pl">Colpire</span><span class="pv">${sgn(atkBonus(a))}</span></button>
       <button class="pill" data-act="roll-dmg" data-i="${i}" aria-label="Tira il danno"><span class="pl">Danno</span><span class="pv">${esc(a.dmg?dmgF(a):'—')}</span></button>
     </div>`).join('')}</div>`:`<div class="empty">Nessun attacco. Aggiungi la tua prima arma.</div>`}
@@ -1295,7 +1317,7 @@ function itemSub(it){
 }
 function acCard(){
   const a=acInfo();
-  return `<section class="card"><div class="row-h"><div><h2 class="h" style="border:0;margin:0;padding:0">Classe Armatura</h2><span class="sub">${a?esc(a.parts.join(' + ')):'Valore impostato a mano. Indossa un’armatura o uno scudo per calcolarla.'}</span></div><b style="font-size:28px;font-family:var(--serif)">${acNow()}</b></div>${strShort()?`<p class="sub" style="margin-top:6px">Forza ${strShort().str} richiesta: velocità −3 m.</p>`:''}${stealthDis()?`<p class="sub" style="margin-top:6px">Svantaggio alle prove di Furtività.</p>`:''}</section>`;
+  return `<section class="card"><div class="row-h"><div><h2 class="h" style="border:0;margin:0;padding:0">Classe Armatura</h2><span class="sub">${a?esc(a.det.map(x=>x[0]+' '+(x[1]<0?'−'+Math.abs(x[1]):x[1])).join(' + ')+' = '+a.ac):'Valore impostato a mano. Indossa un’armatura o uno scudo per calcolarla.'}</span></div><b style="font-size:28px;font-family:var(--serif)">${acNow()}</b></div>${strShort()?`<p class="sub" style="margin-top:6px">Forza ${strShort().str} richiesta: velocità −3 m.</p>`:''}${stealthDis()?`<p class="sub" style="margin-top:6px">Svantaggio alle prove di Furtività.</p>`:''}</section>`;
 }
 function totalW(){return S.items.reduce((t,i)=>t+(+i.w||0)*(+i.qty||0),0);}
 function viewZaino(){
@@ -1861,7 +1883,7 @@ document.addEventListener('click',e=>{
     case 'upd-check':{const u=val('upd-url').trim();window.AndroidApp.setUrl(u);window.AndroidApp.check();toast('Controllo in corso…');break;}
     case 'pk-open':PK.open=PK.open===i?-1:i;drawPick();break;
     case 'skill-guide':skillGuide();break;
-    case 'skill-roll-close':closeSheet();rollD20(SKILLS[i][0],skillB(i));break;
+    case 'skill-roll-close':closeSheet();rollD20(SKILLS[i][0],skillB(i),skillParts(i));break;
     case 'spell-info':spellInfo(i);break;
     case 'spell-edit':closeSheetInstant();editSpell(i);break;
     case 'cast-close':closeSheet();castSpell(i);break;
@@ -1872,8 +1894,9 @@ document.addEventListener('click',e=>{
       delete R.list[D.id];if(R.act===D.id){R.act=Object.keys(R.list)[0];S=R.list[R.act];recalc();applyTheme();}persist();charsPanel();render(true);break;}
     /* scheda */
     case 'edit-stats':editStats();break;
-    case 'roll-init':rollD20('Iniziativa',initTot());break;
-    case 'roll-abil':rollD20('Prova di '+AB[D.k][1],abilMod(D.k));break;
+    case 'calc-info':calcSheet();break;
+    case 'roll-init':rollD20('Iniziativa',initTot(),initParts());break;
+    case 'roll-abil':rollD20('Prova di '+AB[D.k][1],abilMod(D.k),[[AB[D.k][1],abilMod(D.k)]]);break;
     case 'edit-abil':e.stopPropagation();editAbil(D.k);break;
     case 'amt':{AMT=Math.max(0,AMT+ +D.d);const inp=$('#amt');if(inp)inp.value=AMT;break;}
     case 'damage':damage(AMT);break;
@@ -1897,14 +1920,14 @@ document.addEventListener('click',e=>{
       else{S.death.f=Math.min(3,S.death.f+1);msg='Fallimento';bad=true;}
       persist();render();showRoll({label:'Tiro salvezza contro morte',total:r,detail:msg,tag,bad});break;}
     /* abilità */
-    case 'roll-save':rollD20('Tiro salvezza '+AB[D.k][1],saveB(D.k));break;
+    case 'roll-save':rollD20('Tiro salvezza '+AB[D.k][1],saveB(D.k),saveParts(D.k));break;
     case 'tog-save':e.stopPropagation();S.saves[D.k]=S.saves[D.k]?0:1;persist();render();break;
-    case 'roll-skill':rollD20(SKILLS[i][0],skillB(i));break;
+    case 'roll-skill':rollD20(SKILLS[i][0],skillB(i),skillParts(i));break;
     case 'cycle-skill':{e.stopPropagation();const n=SKILLS[i][0];S.skills[n]=((S.skills[n]||0)+1)%3;persist();render();break;}
     /* azioni */
     case 'add-atk':pickAtk();break;
     case 'edit-atk':editAtk(i);break;
-    case 'roll-atk':{const a=S.attacks[i];rollD20(a.name+': colpire',atkBonus(a));break;}
+    case 'roll-atk':{const a=S.attacks[i];rollD20(a.name+': colpire',atkBonus(a),atkParts(a));break;}
     case 'roll-dmg':{const a=S.attacks[i],r=rollFormula(dmgF(a),crit);
       if(!r){toast('Formula del danno non valida. Esempio: 1d8+3');break;}
       showRoll({label:`${a.name}: danno${a.type?' '+a.type:''}`,total:r.total,detail:r.detail,tag:crit?'Critico':''});break;}
