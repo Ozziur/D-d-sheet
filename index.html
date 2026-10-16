@@ -1579,11 +1579,49 @@ function spendKi(n,label,after){
   if(after)after();else toast(`${label}: spesi ${n} ki, ne restano ${kiLeft()}.`);
   return true;
 }
+/* Via dei Quattro Elementi: discipline (Manuale p. 93–94). [chiave, nome, livello, costo ki, testo, dado base, dado per ki extra, tipo, TS, incantesimo scalabile] */
+const DISC=[
+['vento','Cavalcare il Vento',11,4,'Lanci volare su te stesso','','','','',0],
+['cenere','Colpo della Cenere Turbinante',3,2,'Lanci mani brucianti (cono di 4,5 m)','3d6','1d6','da fuoco','Destrezza',1],
+['montagna','Difesa della Montagna Eterna',17,5,'Lanci pelle di pietra su te stesso','','','','',0],
+['fenice','Fiamme della Fenice',11,4,'Lanci palla di fuoco (sfera di 6 m)','8d6','1d6','da fuoco','Destrezza',1],
+['famelica','Fiume della Fiamma Famelica',17,5,'Lanci muro di fuoco','5d8','1d8','da fuoco','Destrezza',1],
+['fiume','Forma del Fiume Fluente',3,1,'Azione: modelli acqua e ghiaccio in un’area fino a 9 m di lato entro 36 m (colonne, fosse, muri, canali)','','','','',0],
+['frusta','Frusta d’Acqua',3,2,'Azione: una creatura entro 9 m fa un TS Destrezza; se fallisce subisce i danni e la fai cadere prona o la tiri fino a 7,5 m verso di te, se lo supera subisce metà danni','3d10','1d10','contundenti','Destrezza',1],
+['gong','Gong della Sommità',6,3,'Lanci frantumare','3d8','1d8','da tuono','Costituzione',1],
+['morsa','Morsa del Vento del Nord',6,3,'Lanci blocca persone','','','','',0],
+['terra','Onda della Terra Tumultuosa',17,6,'Lanci muro di pietra','','','','',0],
+['nebbia','Postura della Nebbia',11,4,'Lanci forma gassosa su te stesso','','','','',0],
+['tuoni','Pugno dei Quattro Tuoni',3,2,'Lanci onda tonante (cubo di 4,5 m)','2d8','1d8','da tuono','Costituzione',1],
+['aria','Pugno dell’Aria Inviolabile',3,2,'Azione: una creatura entro 9 m fa un TS Forza; se fallisce subisce i danni, viene spinta fino a 6 m e cade prona, se lo supera subisce metà danni','3d10','1d10','contundenti','Forza',1],
+['inverno','Soffio dell’Inverno',17,6,'Lanci cono di freddo','8d8','1d8','da freddo','Costituzione',1],
+['burrasca','Spiriti della Burrasca Impetuosa',3,2,'Lanci folata di vento','','','','',0],
+['zanne','Zanne del Serpente di Fuoco',3,1,'Con l’azione di Attacco: portata dei colpi senz’armi +3 m per il turno e danni da fuoco invece che contundenti','','','','',0]];
+const discMaxKi=l=>l>=17?6:l>=13?5:l>=9?4:l>=5?3:0;
+const discSlots=l=>l>=3?1+(l>=6)+(l>=11)+(l>=17):0;
+const discKnown=()=>(S.disc||[]).filter(k=>DISC.some(x=>x[0]===k));
+function discPanel(){
+  const l=monkL(),kn=discKnown(),full=kn.length>=discSlots(l);
+  const body=`<p class="sub">Conosci Sintonia Elementale e ${discSlots(l)} disciplin${discSlots(l)===1?'a':'e'} a scelta (una al 3°, poi al 6°, 11° e 17° livello). Scelte: ${kn.length}/${discSlots(l)}.</p>
+  <div class="chips">${DISC.map(x=>{const on=kn.includes(x[0]),ok=l>=x[2];return `<button class="chip" data-act="mk-disc-t" data-k="${x[0]}" aria-pressed="${on}"${(!on&&(full||!ok))?' disabled style="opacity:.45"':''}>${on?ic('check',16):''}${esc(x[1])} · ${x[3]} ki${x[2]>3?' · '+x[2]+'°':''}</button>`;}).join('')}</div>`;
+  openSheet({title:'Discipline elementali',body});
+}
+function discRoll(x,extra){
+  const n=+x[5].split('d')[0]+extra,die=x[5].split('d')[1],f=rollFormula(n+'d'+die,false);
+  showRoll({label:`${x[1]} · ${x[3]+extra} ki`,total:f?f.total:0,detail:`${n}d${die} danni ${x[7]}: ${f?f.detail:''} · TS ${x[8]} CD ${kiDC()}, metà se lo supera`});
+}
+function discUse(k){
+  const x=DISC.find(d=>d[0]===k);if(!x)return;
+  const l=monkL(),room=Math.max(0,Math.min(discMaxKi(l)||x[3],99)-x[3]),canX=x[9]&&x[5]&&l>=5&&room>0;
+  if(!canX){spendKi(x[3],x[1],x[5]?()=>discRoll(x,0):null);return;}
+  const opts=Array.from({length:room+1},(_,e)=>e).map(e=>`<button class="btn ${e?'outline':''} full" data-act="mk-disc-go" data-k="${k}" data-x="${e}"${x[3]+e>kiLeft()?' disabled style="opacity:.45"':''}>${x[3]+e} ki · ${+x[5].split('d')[0]+e}d${x[5].split('d')[1]} ${x[7]}</button>`).join('');
+  openSheet({title:x[1],body:`<p>${esc(x[4])}.</p><p class="sub">Puoi spendere ki extra per aumentare il danno, fino a ${discMaxKi(l)} ki in tutto al tuo livello. Ki disponibili: ${kiLeft()}.</p><div class="fields">${opts}</div>`});
+}
 function monkCard(){
   const l=monkL();if(!l)return'';
   const on=maOn(),u=unarmed(),sub=subOf('Monaco'),ex=l>=5;
   const pill=(act,k,lbl,v,tonal)=>`<button class="pill${tonal?' tonal':''}" data-act="${act}" data-k="${k}"><span class="pl">${lbl}</span><span class="pv">${esc(v)}</span></button>`;
-  const row=(name,small,right)=>`<div class="item"><div class="row-main"><b>${name}</b><small style="white-space:normal">${small}</small></div>${right}</div>`;
+  const row=(name,small,right)=>`<div class="item"><div class="row-main"><b style="white-space:normal">${name}</b><small style="white-space:normal">${small}</small></div>${right}</div>`;
   const kiRow=(k,name,cost,small,lbl)=>row(name,small,pill('mk-ki',k,lbl||'Usa',cost+' ki'));
   const rows=[];
   rows.push(row('Colpo senz’armi',`Azione di Attacco${ex?' · 2 attacchi (Attacco Extra)':''} · ${esc(u.type)}`,pill('mk-atk','u','Colpire',sgn(u.hit),1)+pill('mk-dmg','u','Danno',u.dmg)));
@@ -1604,6 +1642,14 @@ function monkCard(){
   if(l>=14)other.push(kiRow('adamant','Anima Adamantina',1,'Quando fallisci un tiro salvezza: ripeti il tiro e tieni il nuovo risultato'));
   if(sub==='Via della Mano Aperta'&&l>=17)other.push(kiRow('quiver','Palmo Tremante',3,`Quando colpisci con un colpo senz’armi: vibrazioni per ${l} giorni. Con un’azione le fermi: TS Costituzione CD ${kiDC()}, se fallisce scende a 0 PF, altrimenti 10d10 necrotici`));
   if(l>=18){other.push(kiRow('empty','Corpo Vuoto',4,'Azione: invisibile per 1 minuto, resistenza a tutti i danni tranne forza'));other.push(kiRow('astral','Corpo Vuoto: proiezione astrale',8,'Lanci proiezione astrale solo su te stesso, senza componenti materiali'));}
+  const el=[];
+  if(sub==='Via dei Quattro Elementi'&&l>=3){
+    el.push(row('Sintonia Elementale','Azione: piccoli effetti elementali (scintille, sbuffi di vento, accendere o spegnere una fiamma, scaldare o raffreddare un oggetto, modellare un po’ di terra, acqua o fuoco)',''));
+    discKnown().forEach(k=>{const x=DISC.find(d=>d[0]===k);const tx=esc(x[4])+(x[5]?` · ${x[5]} ${x[7]}, TS ${x[8]} CD ${kiDC()}`:'');
+      if(k==='zanne')el.push(row(esc(x[1]),tx+'. Quando colpisci puoi spendere 1 ki per 1d10 danni da fuoco extra',pill('mk-disc','zanne','Usa','1 ki')+pill('mk-fang','f','+1d10','1 ki',1)));
+      else el.push(row(esc(x[1]),tx,pill('mk-disc',k,x[5]?'Tira':'Usa',x[3]+' ki',!!x[5])));});
+  }
+  if(sub==='Via dell’Ombra'&&l>=11)other.push(row('Manto di Ombre','Azione: in luce fioca o buio diventi invisibile finché non attacchi, lanci un incantesimo o entri in luce intensa',''));
   const react=[];
   if(l>=3)react.push(row('Deviare Proiettili',`Reazione quando un’arma a distanza ti colpisce: riduci il danno di 1d10 ${sgn(abilMod('des'))} + ${l}. Se lo riduci a 0 puoi afferrarlo e rilanciarlo per 1 ki`,pill('mk-deflect','d','Riduci','1d10'+sgn(abilMod('des')+l).replace('−','-'),1)));
   if(l>=4)react.push(row('Caduta Lenta',`Reazione quando cadi: riduci il danno da caduta di ${5*l}`,''));
@@ -1612,7 +1658,7 @@ function monkCard(){
     <div class="row-h"><h2 class="h">Arti Marziali</h2><span class="sub">d${maDie(l)} · ${AB[maAb()][1]}</span></div>
     ${l>=2?`<div class="row-h" style="min-height:44px"><div><b>Punti ki</b><br><span class="sub">CD ki ${kiDC()} · riposo breve</span></div><div class="qty"><button data-act="res-d" data-k="ki" data-d="1" aria-label="Spendi un punto ki">${ic('minus',20)}</button><b style="min-width:56px">${kiLeft()}/${kiMax()}</b><button data-act="res-d" data-k="ki" data-d="-1" aria-label="Recupera un punto ki">${ic('add',20)}</button></div></div>`:''}
     ${on?'':`<p class="sub" style="margin:0">Indossi armatura o scudo: niente dado delle Arti Marziali, Destrezza al posto della Forza né colpo bonus.</p>`}
-    ${sec('Azione',rows)}${sec('Azione bonus',bonus)}${sec('Altri usi',other)}${sec('Reazioni',react)}
+    ${sec('Azione',rows)}${sec('Azione bonus',bonus)}${sec('Altri usi',other)}${el.length?`<div class="row-h" style="margin-top:4px"><h3 class="group-h" style="margin:0;flex:1">Discipline elementali</h3><button class="btn text sm" data-act="mk-disc-pick">Scegli (${discKnown().length}/${discSlots(l)})</button></div><div class="list">${el.join('')}</div>`:''}${sec('Reazioni',react)}
   </section>`;
 }
 const ATKCATS=[['t','Tutte'],['m1','Una mano'],['m2','Due mani'],['dist','Distanza'],['inc','Incantesimi']];
@@ -2039,6 +2085,11 @@ document.addEventListener('click',e=>{
       showRoll({label:`${a.name}: danno${a.type?' '+a.type:''}`,total:r.total,detail:r.detail+(why?' ('+why+')':''),tag:crit?'Critico':''});break;}
     case 'mk-atk':{const t=D.k==='u'?unarmed():monkWeapons().find(w=>'w'+w.i===D.k);if(t)rollD20(t.name+': colpire',t.hit,t.parts);break;}
     case 'mk-dmg':{const t=D.k==='u'?unarmed():monkWeapons().find(w=>'w'+w.i===D.k);if(!t)break;const r=rollFormula(t.dmg,crit);if(r)showRoll({label:`${t.name}: danno ${t.type}`,total:r.total,detail:r.detail,tag:crit?'Critico':''});break;}
+    case 'mk-disc-pick':discPanel();break;
+    case 'mk-disc-t':{const l=monkL(),x=DISC.find(d=>d[0]===D.k);if(!x)break;S.disc=discKnown();const j=S.disc.indexOf(D.k);if(j>=0)S.disc.splice(j,1);else if(S.disc.length<discSlots(l)&&l>=x[2])S.disc.push(D.k);persist();render();const b=$('#sheet-body',root),sc=b?b.scrollTop:0;closeSheetInstant();discPanel();root.classList.add('open');const nb=$('#sheet-body',root);if(nb)nb.scrollTop=sc;break;}
+    case 'mk-disc':discUse(D.k);break;
+    case 'mk-disc-go':{const x=DISC.find(d=>d[0]===D.k),e=+D.x;if(!x)break;closeSheet();spendKi(x[3]+e,x[1],()=>discRoll(x,e));break;}
+    case 'mk-fang':spendKi(1,'Zanne del Serpente di Fuoco',()=>{const r=d(10);showRoll({label:'Zanne del Serpente di Fuoco · 1 ki',total:r,detail:`1d10 danni da fuoco extra: [${r}]`});});break;
     case 'mk-bonus':monkStrikes(1,'Colpo senz’armi bonus');break;
     case 'mk-ki':{const K={flurry:[1,'Raffica di Colpi',()=>monkStrikes(2,'Raffica di Colpi · 1 ki')],patient:[1,'Difesa Paziente'],step:[1,'Passo del Vento'],stun:[1,'Colpo Stordente',()=>showRoll({label:'Colpo Stordente · 1 ki',total:'CD '+kiDC(),detail:'Il bersaglio fa un TS Costituzione: se fallisce è stordito fino alla fine del tuo prossimo turno. Ki rimasti: '+kiLeft()})],shadow:[2,'Arti dell’Ombra'],adamant:[1,'Anima Adamantina'],quiver:[3,'Palmo Tremante'],empty:[4,'Corpo Vuoto'],astral:[8,'Proiezione astrale']}[D.k];if(K)spendKi(K[0],K[1],K[2]);break;}
     case 'mk-deflect':{const l=monkL(),r=d(10),t=r+abilMod('des')+l;showRoll({label:'Deviare Proiettili',total:t,detail:`1d10: ${r} ${sgn(abilMod('des'))} (Destrezza) + ${l} (livello) = danno ridotto di ${t}`});break;}
