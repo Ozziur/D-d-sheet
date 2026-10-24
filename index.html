@@ -2835,7 +2835,7 @@ document.addEventListener('click',e=>{
     case 'atk-cat':{PK.list=D.c==='t'?PK_ATK:PK_ATK.filter(e=>e.cat===D.c);root.querySelectorAll('#atk-cats .chip').forEach(c=>c.setAttribute('aria-pressed',String(c.dataset.c===D.c)));PK.open=-1;drawPick();break;}
     case 'sp-all':{const on=el.getAttribute('aria-pressed')==='true';el.setAttribute('aria-pressed',String(!on));PK.list=on?PK.all:PK.mine;drawPick();break;}
     case 'edit-item':editItem(i);break;
-    case 'qty':S.items[i].qty=Math.max(0,S.items[i].qty+ +D.d);persist();render();break;
+    case 'qty':{const it=S.items[i];if(!it)break;const q=(+it.qty||0)+ +D.d;if(q<=0){if(it.id)S.attacks=S.attacks.filter(a=>a.iid!==it.id);S.items.splice(i,1);toast('Oggetto rimosso: '+it.name);}else it.qty=q;persist();render();break;}
     case 'add-feat':editFeat(-1);break;
     case 'edit-feat':editFeat(i);break;
     /* sheet */
@@ -2905,5 +2905,7 @@ render(true);
 </script>
 </body>
 </html>
+
+</body></html>
 
 </body></html>
